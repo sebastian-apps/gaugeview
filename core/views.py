@@ -50,7 +50,7 @@ class CameraSpecific(APIView):
  """
 class CameraQuery(generics.ListCreateAPIView):
     model = Camera
-    # serializer_class = CameraSerializer
+    serializer_class = CameraSerializer
 
     def get_queryset(self):
         queryset = None
