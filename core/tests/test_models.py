@@ -17,7 +17,7 @@ class CameraTestCase(TestCase):
         """
             Set up four cameras to start.
             Camera 1 (i.e., camera_id: 1) has the most image files.
-            Camera 3 has the used the most data and has the largest file.
+            Camera 3 has used the most data and has the largest file.
             Camera 4 has no images.
         """
         camera_1 = Camera.objects.create(camera_id=1)
