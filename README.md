@@ -4,7 +4,7 @@
 Clone the repository.
 
 ```bash
-git clone git@github.com:sebastian-apps/cameras.git
+git clone https://github.com/sebastian-apps/cameras.git
 ```
 
 Create and activate the virtual environment.
