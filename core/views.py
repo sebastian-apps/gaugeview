@@ -1,11 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
-
 from django.http import JsonResponse
-
 from .models import Camera, Image
 from django.db.models import Count, Sum, Max
-
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
