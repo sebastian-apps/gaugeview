@@ -4,7 +4,7 @@ from django.urls import reverse
 import random
 import requests
 
-N_CAMERAS = 100
+N_CAMERAS = 100  # minimum 6
 M_FILES = 100
 TIMEOUT = 1
 LOCALHOST = "http://localhost:8000/"
@@ -78,18 +78,21 @@ class CameraTestCase(TestCase):
             Request each camera's details individually. Should get 200 status code.
             Also, request camera with camera_id: N_CAMERAS + 1. Should return 404.
         """
+
+        # Create cameras.
         for i in range(5, N_CAMERAS):  # Start at 5 because 4 cameras have already been created.
             cam = Camera.objects.create(camera_id=i)
             for j in range(M_FILES):
-              Image.objects.create(camera=cam, file_size=random.randint(1,5001)*1024)  # Random for no particular reason
+              Image.objects.create(camera=cam, file_size=random.randint(1,5001)*1024) 
 
+        # Test cameras.
         cameras = Camera.objects.all()
         for camera in cameras:
             url = reverse('core:camera_specific', args=[camera.camera_id])
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
 
-        """ This camera should not exist. """
+        # This camera should not exist because camera_id is N_CAMERAS + 1
         url = reverse('core:camera_specific', args=[N_CAMERAS + 1])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
@@ -101,11 +104,13 @@ class CameraTestCase(TestCase):
         """
             Request all cameras simultaneously. Should get 200 status code.
         """
+        # Create cameras.
         for i in range(5, N_CAMERAS):  # Start at 5 because 4 cameras have already been created.
             cam = Camera.objects.create(camera_id=i)
             for j in range(M_FILES):
               Image.objects.create(camera=cam, file_size=random.randint(1,5001)*1024)
 
+        # Test cameras.
         url = reverse('core:camera_list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
