@@ -92,7 +92,7 @@ class CameraTestCase(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
 
-        # This camera should not exist because camera_id is N_CAMERAS + 1
+        # This camera should not exist because camera_id = N_CAMERAS + 1
         url = reverse('core:camera_specific', args=[N_CAMERAS + 1])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
