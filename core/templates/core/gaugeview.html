@@ -1,0 +1,514 @@
+{% extends "core/base.html" %}
+{% load bootstrap3 %}
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+
+
+{% block header %}
+
+<font color="#585858">
+  <h2>GaugeView</h2>
+</font>
+
+
+
+{% endblock header %}
+
+
+
+{% block content %}
+
+
+<noscript>
+<div class="disabled">
+Javascript is disabled in your web browser. Please enable JavaScript to view the chart.</div>
+</noscript>
+
+<style>
+#video_box{
+    position:relative;
+}
+#video_overlays {
+    position:absolute;
+    z-index:300000;
+    text-align:center;
+}
+
+.responsive {
+  width: 100%;
+  height: auto;
+}
+
+.box {
+  border: 15px solid #585858;
+  background-color: #D3D3D3;
+  padding: 10px;
+}
+</style>
+
+
+
+
+
+<div class="row">
+  <div class="col-md-8">
+    <div id="wrap_video" class="box">
+      <div class="responsive" id="video_box">
+        <div id="video_overlays" class="responsive">
+    	     <canvas id="video_canvas" class="responsive"></canvas>
+        </div>
+        <div>
+          <video id="player" controls autoplay class="responsive"></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="col-md-4">
+    <center>
+    <div class="box">
+      <div style="font-size: xx-large; background-color: #E8E8E8;">
+        <font color="#585858">time</font>
+        <div id="time_box"></div>
+      </div>
+      <p>
+      <div style="font-size: xx-large; background-color: #E8E8E8">
+        <font color="#585858">pressure</font>
+        <div id="psig_box"></div>
+      </div>
+      <p>
+
+      <div>
+        <button class="btn btn-default" id="reset">Reset</button>
+        <button class="btn btn-default" id="export">Export</button><br><p>
+
+          <form action="{% url 'core:gauge_export' %}" method='post'>
+            {% csrf_token %}
+            <input name="json" id="json" type="hidden" value="">
+            <button class="btn btn-primary" id="export_download_button" style="display: none;" name="submit" onclick='remove_button(this)'>DOWNLOAD CSV</button>
+          </form>
+      </div>
+    </div>
+    <p><br>
+
+    <div class="box">
+      <div id="settings_menu" style="background-color: #E8E8E8; display: none">
+
+        <canvas id="canvas" width=100 height=100></canvas>
+        <p>
+
+        <div class="row" align=left style="padding-left:20px">
+          <div class="col-xs-6">
+              Sensitivity:<br><input id="sensitivity_field" size="5"><br>
+              Radius factor:<br><input id="r_factor_field" size="5"><br>
+              Sm. radius factor:<br><input id="sm_r_factor_field" size="5"><br>
+              Min. pixels:<br><input id="pxls_detected_min_field" size="5"><br>
+            </div>
+            <div class="col-xs-6">
+              R&sup2; min:<br><input id="r_sq_min_field" size="5"><br>
+              Residual cutoff:<br><input id="residual_cutoff_field" size="5"><br>
+              Ref. angle:<br><input id="ref_angle_field" size="5"><br>
+              Calibration:<br><input id="calib_field" size="5"><br>
+            </div>
+            <p><br>
+
+        </div>
+        <p><br>
+        <button class="btn btn-primary" onclick="update_params()">Update</button>
+        <p><br>
+      </div>
+
+      <button class="btn btn-default" onclick='settings()'>Settings</button>
+    </div>
+
+    </center>
+
+
+<span id="messages"></span>
+
+
+  </div>
+
+<div id="text"></div>
+
+</div>
+
+
+<p><br>
+<div class="box" id="dynamic_chart"><canvas style="background-color: #ffffff" id="chart" width=100 height=50></canvas></div>
+
+
+
+<p><br>
+
+
+
+
+<script>
+var sensitivity = {{ sensitivity }};
+var r_factor = {{ r_factor }};
+var sm_r_factor = {{ sm_r_factor }};
+var pxls_detected_min = {{ pxls_detected_min }};
+var r_sq_min = {{ r_sq_min }};
+var residual_cutoff = {{ residual_cutoff }};
+var ref_angle = {{ ref_angle }};
+var calib = {{ calib }};
+
+const message = document.getElementById('messages');
+const settings_menu = document.getElementById('settings_menu');
+const player = document.getElementById('player');
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+const resetButton = document.getElementById('reset');
+const exportButton = document.getElementById('export');
+const video_canvas = document.getElementById('video_canvas');
+const context2 = video_canvas.getContext('2d');
+
+var videoWidth;
+var videoHeight;
+var centerX;
+var centerY;
+var time = 0;
+var psig = 0;
+var radius;
+var x0;
+var y0;
+var x_unit = 0;
+var y_unit = 0;
+var points_x;
+var points_y;
+
+var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
+var constraints;
+if (isMobile) {
+  constraints = { video: {facingMode: {exact: "environment"}}};
+}
+else {
+  constraints = {video: true};
+}
+
+
+resetButton.addEventListener('click', () => {
+	time = 0;
+  //real_time = 0;
+	gaugeChart.data.datasets[0]["data"] = [];
+	gaugeChart.update();
+});
+
+/*
+  stopButton.addEventListener('click', () => {
+	var enumeratorPromise = navigator.mediaDevices.enumerateDevices();
+navigator.mediaDevices.enumerateDevices()
+ .then((list) => {
+   var i;
+   var s = "";
+   for (i = 0; i < list.length; i++) {
+     s = s + list[i].kind + ", "
+   }
+    document.getElementById("text").innerHTML = s;
+  });
+     Stop all video streams.
+    player.srcObject.getVideoTracks().forEach(track => track.stop());
+  });
+*/
+
+// GET VIDEO STREAM
+navigator.mediaDevices.getUserMedia(constraints)
+.then(function(stream) {
+      player.srcObject = stream;
+      player.onloadedmetadata = function(e) {
+        player.play();
+        prepare_cam_view();
+      };
+})
+.catch(function(err) {
+  /* handle the error */
+});
+
+
+
+display_params();
+
+
+setInterval(function(){
+
+	time = time + 1;
+	// update chart
+  gaugeChart.data.datasets[0]["data"].push({"x": time, "y": psig});
+	gaugeChart.update();
+	document.getElementById("time_box").innerHTML = time + " s";
+  document.getElementById("psig_box").innerHTML = psig + " psig";
+	context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
+	image_gauge = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, '');
+
+
+	$.ajax({
+    headers: { "X-CSRFToken": "{{csrf_token}}"},
+    url:"{% url 'core:read_gauge' %}",
+    method:"POST",
+    data:{
+      image_string: image_gauge,
+      radius: radius,
+      comp_ratio: video_canvas.height/canvas.height,
+      sensitivity: sensitivity,
+      r_factor: r_factor,
+      sm_r_factor: sm_r_factor,
+      pxls_detected_min: pxls_detected_min,
+      r_sq_min : r_sq_min,
+      residual_cutoff: residual_cutoff,
+      ref_angle: ref_angle,
+      calib: calib,
+    },
+    success:function(response) {
+
+      // draw pixels in settings menu
+      points_x = JSON.parse(response.points_x);
+      points_y = JSON.parse(response.points_y);
+      draw_detected_pixels();
+      //draw_circles_in_settings();
+
+      // get pressure and needle position
+			if ((response.psig !== 999) && (response.x_unit !== 999) && (response.y_unit !== 999)) {
+
+				psig = response.psig;
+        document.getElementById("psig_box").innerHTML = psig + " psig";
+        x_unit = response.x_unit;
+        y_unit = response.y_unit;
+
+				// clear the canvas so we can draw a fresh gauge and needle at new position
+				context2.clearRect(0, 0, video_canvas.width, video_canvas.height);
+				context2.beginPath();
+				context2.moveTo(centerX, centerY);
+   			context2.lineTo(centerX+(x_unit*radius),centerY+(y_unit*radius));
+				context2.lineWidth = 4;
+				context2.strokeStyle = '#0000ff';
+				context2.stroke();
+				drawCircles();
+      }
+       		},
+       		error:function(){
+        		//alert("error");
+       		}
+       });
+
+}, 1000) /* time in milliseconds */
+
+
+function isStreamSupported() {
+  if (navigator.getUserMedia)
+    return true;
+  else
+    return false;
+}
+
+
+exportButton.addEventListener('click', () => {
+	document.getElementById('json').value=JSON.stringify(gaugeChart.data.datasets[0]["data"])
+	document.getElementById('export_download_button').style="display: true;"
+});
+
+function remove_button(button) {
+   button.style="display: none;"
+}
+
+
+function settings(){
+  if (settings_menu.style.display == "none"){
+    settings_menu.style.display = "block";
+  } else {
+    settings_menu.style.display = "none";
+  }
+}
+
+
+function prepare_cam_view(){
+  // get video stream dimensions
+  videoWidth = player.srcObject.getTracks()[0].getSettings().width
+  videoHeight = player.srcObject.getTracks()[0].getSettings().height
+
+  // setup canvas for drawing circles
+  video_canvas.width = videoWidth;
+  video_canvas.height = videoHeight;
+  centerX = video_canvas.width / 2;
+  centerY = video_canvas.height / 2;
+
+	//cut out a square image from webcam stream
+	if (video_canvas.height <= video_canvas.width){
+		radius = (video_canvas.height*0.8)/2;
+		y0 = video_canvas.height*0.1;
+		x0 = (video_canvas.width-(2*radius))/2;
+	}
+	else {
+		radius = (video_canvas.width*0.8)/2;
+		y0 = (video_canvas.height-(2*radius))/2;
+		x0 = video_canvas.width*0.1;
+	}
+}
+
+
+function drawCircles (){
+      context2.beginPath();
+      context2.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+      context2.lineWidth = 2;
+      context2.strokeStyle = '#ff0000';
+      context2.stroke();
+      context2.beginPath();
+      context2.arc(centerX, centerY, radius/20, 0, 2 * Math.PI, false);
+      context2.lineWidth = 2;
+      //context2.fillStyle = '#ff0000';
+      //context2.fill();
+      context2.strokeStyle = '#ff0000';
+      context2.stroke();
+}
+
+
+function draw_detected_pixels(){
+  context.beginPath();
+  var i;
+  for (i = 0; i < points_x.length; i++) {
+    context.fillRect(points_x[i],points_y[i],5,5); // fill in the pixel at (10,10)
+  }
+  context.stroke();
+}
+
+function draw_circles_in_settings(){
+  context.beginPath();
+  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*r_factor, 0, 2 * Math.PI, false);
+  context.lineWidth = 1;
+  context.strokeStyle = '#0000ff';
+  context.stroke();
+  context.beginPath();
+  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*sm_r_factor, 0, 2 * Math.PI, false);
+  context.lineWidth = 1;
+  context.strokeStyle = '#0000ff';
+  context.stroke();
+}
+
+
+$(window).resize(function(e) {
+  prepare_cam_view();
+});
+
+
+function display_params(){
+  document.getElementById("sensitivity_field").value = sensitivity;
+  document.getElementById("r_factor_field").value = r_factor;
+  document.getElementById("sm_r_factor_field").value = sm_r_factor;
+  document.getElementById("pxls_detected_min_field").value = pxls_detected_min;
+  document.getElementById("r_sq_min_field").value = r_sq_min;
+  document.getElementById("residual_cutoff_field").value = residual_cutoff;
+  document.getElementById("ref_angle_field").value = ref_angle;
+  document.getElementById("calib_field").value = calib;
+}
+
+
+function update_params(){
+  sensitivity_value = document.getElementById("sensitivity_field").value;
+  r_factor_value = document.getElementById("r_factor_field").value;
+  sm_r_factor_value = document.getElementById("sm_r_factor_field").value;
+  pxls_detected_min_value = document.getElementById("pxls_detected_min_field").value;
+  r_sq_min_value = document.getElementById("r_sq_min_field").value;
+  residual_cutoff_value = document.getElementById("residual_cutoff_field").value;
+  ref_angle_value = document.getElementById("ref_angle_field").value;
+  calib_value = document.getElementById("calib_field").value;
+
+
+  pxls_detected_min = pxls_detected_min_value;
+  residual_cutoff =residual_cutoff_value;
+
+  // Sensitivity must be between 0 and 255
+  if ((!isNaN(sensitivity_value)) && (sensitivity_value >= 0) && (sensitivity_value <= 255)){
+    sensitivity = sensitivity_value;
+  }
+  if (!isNaN(sm_r_factor_value)){
+    sm_r_factor = sm_r_factor_value;
+  }
+  // R_sq coefficient must be between 0 and 1
+  if ((!isNaN(r_sq_min_value)) && (r_sq_min_value >= 0) && (r_sq_min_value <= 1)){
+    r_sq_min = r_sq_min_value;
+  }
+  if ((!isNaN(ref_angle_value)) && (ref_angle_value > 0)){
+    ref_angle = ref_angle_value;
+  }
+  if ((!isNaN(calib_value)) && (calib_value > 0)){
+    calib = calib_value;
+  }
+  // Radius factor must be between 0 and 1
+  if ((!isNaN(r_factor_value)) && (r_factor_value >= 0) && (r_factor_value <= 1)){
+    r_factor = r_factor_value;
+  }
+  display_params();
+}
+
+
+var gaugeChart = new Chart(document.getElementById("chart"), {
+    type: 'scatter',
+    data: {
+	datasets: [{
+    borderColor: ['rgba(0, 0, 209, 1)'],
+    backgroundColor: ['rgba(0, 0, 209, 0.2)'],
+		data:
+		[{x: 0, y: 0}]
+	}]
+
+    },
+    options: {
+      responsive: true,
+	maintainAspectRatio: true,
+	aspectRatio: 2,
+	animation: false,
+	legend: {
+	display: false,
+ 	   labels: {
+	      usePointStyle: true,
+	    },
+           position: 'right',
+	   onClick: (e) => e.stopPropagation()
+      	},
+
+      title: {
+        display: false,
+        text: 'Instrument reading',
+	position: 'bottom',
+	fontSize: 16,
+       },
+	scales: {
+        yAxes: [{
+          ticks : {
+            min: 0
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Pressure (psig)",
+            fontSize: 15,
+          }
+        }],
+        xAxes: [{
+          gridLines: {
+            display: false
+          },
+          ticks : {
+            min: 0
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Time (s)",
+            fontSize: 15,
+          }
+        }]
+      },
+     }
+});
+
+
+</script>
+
+
+
+
+{% endblock content %}
