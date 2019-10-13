@@ -20,24 +20,30 @@ def gaugeview(request):
 def read_gauge(request):
     """ Process gauge image """
 
-    if request.method == 'POST':
-        image_string = request.POST.get('image_string') # from webcam
-        comp_ratio = float(request.POST.get('comp_ratio'))
-        radius = int(request.POST.get('radius'))
-        sensitivity = float(request.POST.get('sensitivity'))
-        r_factor = float(request.POST.get('r_factor'))
-        sm_r_factor = float(request.POST.get('sm_r_factor'))
-        pxls_detected_min = int(request.POST.get('pxls_detected_min'))
-        r_sq_min = float(request.POST.get('r_sq_min'))
-        residual_cutoff = float(request.POST.get('residual_cutoff'))
-        ref_angle = float(request.POST.get('ref_angle'))
-        calib = float(request.POST.get('calib'))
+    try:
+        if request.method == 'POST':
+            image_string = request.POST.get('image_string') # from webcam
+            comp_ratio = float(request.POST.get('comp_ratio'))
+            radius = int(request.POST.get('radius'))
+            sensitivity = float(request.POST.get('sensitivity'))
+            r_factor = float(request.POST.get('r_factor'))
+            sm_r_factor = float(request.POST.get('sm_r_factor'))
+            pxls_detected_min = int(request.POST.get('pxls_detected_min'))
+            r_sq_min = float(request.POST.get('r_sq_min'))
+            residual_cutoff = float(request.POST.get('residual_cutoff'))
+            ref_angle = float(request.POST.get('ref_angle'))
+            calib = float(request.POST.get('calib'))
 
-        return JsonResponse(gauge_monitor.read( image_string, comp_ratio, radius,
-                                                sensitivity, r_factor, sm_r_factor,
-                                                pxls_detected_min, r_sq_min,
-                                                residual_cutoff, ref_angle, calib))
 
+            return JsonResponse(gauge_monitor.read( image_string, comp_ratio, radius,
+                                                    sensitivity, r_factor, sm_r_factor,
+                                                    pxls_detected_min, r_sq_min,
+                                                    residual_cutoff, ref_angle, calib))
+
+    except Exception as e:
+        print(str(e))
+
+    return HttpResponse(status=400)
 
 
 
