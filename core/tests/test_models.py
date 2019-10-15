@@ -13,7 +13,7 @@ LOCALHOST = "http://localhost:8000/"
 class CameraTestCase(TestCase):
 
     @classmethod
-    def setUpTestData(self):
+    def setUpTestData(cls):
         """
             Set up four cameras to start.
             Camera 1 (i.e., camera_id: 1) has the most image files.
