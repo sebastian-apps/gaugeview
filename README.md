@@ -1,4 +1,4 @@
-# cameras
+# Cameras REST API
 
 
 Clone the repository.
@@ -35,41 +35,45 @@ python manage.py runserver
 View django-project at 127.0.0.1:8000.
 
 
+# How to
+----
+
+The Cameras API is RESTful, accepts URL-encoded requests, returns JSON-encoded responses, and uses HTTP response codes.
 
 
 * **URLs**
 
-Request data for all cameras.
+  Request data for all cameras.
 
-`/camera` 
+  `/camera` 
 
-Request info for a specific camera.
+  Request info for a specific camera.
 
-`/camera/:camera_id` 
+  `/camera/:camera_id` 
 
-Order all cameras by number of images (highest to lowest). Return [integer] number of cameras.
+  Order all cameras by number of images (highest to lowest). Return [integer] number of cameras.
 
-`/camera/order?num_images=[integer]`
+  `/camera/order?num_images=[integer]`
 
-Order all cameras by file size total (largest to smallest).
+  Order all cameras by file size total (largest to smallest).
 
-`/camera/order?total_sizes=[integer]`
+  `/camera/order?total_sizes=[integer]`
 
-Order all cameras by the file size of its largest image (largest to smallest).
+  Order all cameras by the file size of its largest image (largest to smallest).
 
-`/camera/order?largest_file_sizes=[integer]`
+  `/camera/order?largest_file_sizes=[integer]`
 
-List aggregate information regarding number of images (highest to lowest).
+  List aggregate information regarding number of images (highest to lowest).
 
-`/camera/find/num_images`
+  `/camera/find/num_images`
 
-List aggregate information regarding file size totals (largest to smallest).
+  List aggregate information regarding file size totals (largest to smallest).
 
-`/camera/find/total_sizes`
+  `/camera/find/total_sizes`
 
-List aggregate information regarding largest images (largest to smallest).
+  List aggregate information regarding largest images (largest to smallest).
 
-`/camera/find/largest_file_sizes`
+  `/camera/find/largest_file_sizes`
 
 
 * **Method:**
@@ -79,7 +83,7 @@ List aggregate information regarding largest images (largest to smallest).
   
 * **Success Response:**
   
-Everything worked as expected.
+  Everything worked as expected.
 
   * **Code:** 200 <br />
     **Example Content:** `
