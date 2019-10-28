@@ -67,7 +67,7 @@ Returns JSON-encoded responses.
     **Content:** `{"Not Found" : "choose metric: num_images, total_sizes, or largest_file_sizes"}`
 
 
-<br />
+<br /><br />
 
 ## Installation
 
@@ -81,7 +81,7 @@ Create and activate the virtual environment.
 
 ```bash
 virtualenv2 --no-site-packages env
- env/bin/activate
+ source env/bin/activate
 ```
 
 Install dependencies.
