@@ -5,43 +5,37 @@ Returns JSON-encoded responses.
 
 * **URLs**
 
-  Request data for all cameras.
+  Return data for all cameras.
 
-  `
-  /camera
-  ` 
+  `GET /camera` 
 
-  Request info for a specific camera.
+  Return data for a specific camera.
 
-  `
-  /camera/:camera_id
-  ` 
+  `GET /camera/:camera_id` 
 
   Order all cameras by number of images (highest to lowest). Return [integer] number of cameras.
 
-  `
-  /camera/order?num_images=[integer]
-  `
+  `GET /camera/order?num_images=[integer]`
 
   Order all cameras by file size total (largest to smallest).
 
-  `/camera/order?total_sizes=[integer]`
+  `GET /camera/order?total_sizes=[integer]`
 
   Order all cameras by the file size of its largest image (largest to smallest).
 
-  `/camera/order?largest_file_sizes=[integer]`
+  `GET /camera/order?largest_file_sizes=[integer]`
 
   List aggregate information on number of images (highest to lowest).
 
-  `/camera/find/num_images`
+  `GET /camera/find/num_images`
 
   List aggregate information on file size totals (largest to smallest).
 
-  `/camera/find/total_sizes`
+  `GET /camera/find/total_sizes`
 
   List aggregate information on largest images (largest to smallest).
 
-  `/camera/find/largest_file_sizes`
+  ``GET camera/find/largest_file_sizes`
 
 
 * **Method:**
