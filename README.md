@@ -10,7 +10,7 @@ git clone https://github.com/sebastian-apps/gaugeview.git
 
 Create and activate the virtual environment.
 
-```bash
+```
 virtualenv2 --no-site-packages env
 source env/bin/activate
 ```
