@@ -1,7 +1,5 @@
 # Cameras REST API
 
-Returns JSON-encoded responses.
-
 
 * **URLs**
 
