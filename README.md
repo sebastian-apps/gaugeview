@@ -81,7 +81,7 @@ Create and activate the virtual environment.
 
 ```bash
 virtualenv2 --no-site-packages env
- source env/bin/activate
+source env/bin/activate
 ```
 
 Install dependencies.
