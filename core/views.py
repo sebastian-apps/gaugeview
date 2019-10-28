@@ -80,7 +80,6 @@ class CameraQuery(generics.ListCreateAPIView):
 """
 class CameraFind(APIView):
     def get(self, request, metric):
-        response = NOT_FOUND
 
 
         if metric == "num_images":
@@ -122,6 +121,7 @@ class CameraFind(APIView):
                     camera_list.append({"camera_id": camera.camera_id, "largest_file_size": largest_file_size.get("largest_file_size")})
             response = {"cameras_largest_file_sizes" : sorted(camera_list, key = lambda i: i['largest_file_size'], reverse=True)}
 
-
+        else:
+            raise NotFound(NOT_FOUND)
 
         return Response(response)
