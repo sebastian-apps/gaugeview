@@ -25,15 +25,15 @@ Returns JSON-encoded responses.
 
   `/camera/order?largest_file_sizes={integer}`
 
-  List aggregate information on number of images (highest to lowest).
+  Return aggregate information on number of images (highest to lowest).
 
   `/camera/find/num_images`
 
-  List aggregate information on file size totals (largest to smallest).
+  Return aggregate information on file size totals (largest to smallest).
 
   `/camera/find/total_sizes`
 
-  List aggregate information on largest images (largest to smallest).
+  Return aggregate information on largest images (largest to smallest).
 
   `camera/find/largest_file_sizes`
 
