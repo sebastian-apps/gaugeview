@@ -84,12 +84,6 @@ virtualenv2 --no-site-packages env
 source env/bin/activate
 ```
 
-```
-virtualenv ENV
-source ENV/bin/activate
-```
-
-
 Install dependencies.
 
 ```bash
