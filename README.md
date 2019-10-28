@@ -1,6 +1,6 @@
 # Cameras REST API
 
-The Cameras REST API accepts URL-encoded requests, returns JSON-encoded responses, and uses HTTP response codes.
+Returns JSON-encoded responses.
 
 
 * **URLs**
