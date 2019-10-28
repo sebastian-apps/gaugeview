@@ -73,7 +73,7 @@ The Cameras REST API accepts URL-encoded requests, returns JSON-encoded response
     **Content:** `{"Not Found" : "choose metric: num_images, total_sizes, or largest_file_sizes"}`
 
 
-
+<br />
 
 # Installation
 
