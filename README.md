@@ -1,45 +1,6 @@
 # Cameras REST API
 
-
-Clone the repository.
-
-```bash
-git clone https://github.com/sebastian-apps/cameras.git
-```
-
-Create and activate the virtual environment.
-
-```bash
-virtualenv2 --no-site-packages env
-source env/bin/activate
-```
-
-Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-Create the database.
-
-```bash
-python manage.py migrate
-```
-
-Run the server.
-
-```bash
-python manage.py runserver
-```
-
-View django-project at 127.0.0.1:8000.
-
-
-# How to
-----
-
-The Cameras API is RESTful, accepts URL-encoded requests, returns JSON-encoded responses, and uses HTTP response codes.
-
+The Cameras REST API accepts URL-encoded requests, returns JSON-encoded responses, and uses HTTP response codes.
 
 * **URLs**
 
@@ -103,3 +64,44 @@ The Cameras API is RESTful, accepts URL-encoded requests, returns JSON-encoded r
   
   * **Code:** 404 NOT FOUND<br />
     **Content:** `{"Not Found" : "choose metric: num_images, total_sizes, or largest_file_sizes"}`
+
+
+#Installation
+
+Clone the repository.
+
+```bash
+git clone https://github.com/sebastian-apps/cameras.git
+```
+
+Create and activate the virtual environment.
+
+```bash
+virtualenv2 --no-site-packages env
+source env/bin/activate
+```
+
+Install dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+Create the database.
+
+```bash
+python manage.py migrate
+```
+
+Run the server.
+
+```bash
+python manage.py runserver
+```
+
+View django-project at 127.0.0.1:8000.
+
+
+# How to
+----
+
