@@ -80,8 +80,8 @@ git clone https://github.com/sebastian-apps/cameras.git
 Create and activate the virtual environment.
 
 ```bash
-virtualenv2 --no-site-packages env
-source env/bin/activate
+virtualenv2 --no-site-packages ENV
+source ENV/bin/activate
 ```
 
 Install dependencies.
