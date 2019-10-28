@@ -2,19 +2,26 @@
 
 The Cameras REST API accepts URL-encoded requests, returns JSON-encoded responses, and uses HTTP response codes.
 
+
 * **URLs**
 
   Request data for all cameras.
 
-  `/camera` 
+  `
+  /camera
+  ` 
 
   Request info for a specific camera.
 
-  `/camera/:camera_id` 
+  `
+  /camera/:camera_id
+  ` 
 
   Order all cameras by number of images (highest to lowest). Return [integer] number of cameras.
 
-  `/camera/order?num_images=[integer]`
+  `
+  /camera/order?num_images=[integer]
+  `
 
   Order all cameras by file size total (largest to smallest).
 
@@ -66,7 +73,7 @@ The Cameras REST API accepts URL-encoded requests, returns JSON-encoded response
     **Content:** `{"Not Found" : "choose metric: num_images, total_sizes, or largest_file_sizes"}`
 
 
-#Installation
+# Installation
 
 Clone the repository.
 
