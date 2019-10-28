@@ -31,15 +31,15 @@ The Cameras REST API accepts URL-encoded requests, returns JSON-encoded response
 
   `/camera/order?largest_file_sizes=[integer]`
 
-  List aggregate information regarding number of images (highest to lowest).
+  List aggregate information on number of images (highest to lowest).
 
   `/camera/find/num_images`
 
-  List aggregate information regarding file size totals (largest to smallest).
+  List aggregate information on file size totals (largest to smallest).
 
   `/camera/find/total_sizes`
 
-  List aggregate information regarding largest images (largest to smallest).
+  List aggregate information on largest images (largest to smallest).
 
   `/camera/find/largest_file_sizes`
 
