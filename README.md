@@ -69,7 +69,7 @@ Returns JSON-encoded responses.
 
 <br />
 
-# Installation
+## Installation
 
 Clone the repository.
 
@@ -81,8 +81,7 @@ Create and activate the virtual environment.
 
 ```bash
 virtualenv2 --no-site-packages env
-
-source env/bin/activate
+ env/bin/activate
 ```
 
 Install dependencies.
