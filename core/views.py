@@ -20,16 +20,18 @@ def index(request):
     return render(request, 'core/index.html')
 
 
-""" Request all cameras """
+
 class CameraList(APIView):
+    """ Request all cameras """
     def get(self, request):
         cameras = Camera.objects.all()
         data = CameraSerializer(cameras, many=True).data
         return Response(data)
 
 
-""" Request individual camera based on its camera_id """
+
 class CameraSpecific(APIView):
+    """ Request individual camera based on its camera_id """
     def get(self, request, pk):
         camera = get_object_or_404(Camera, pk=pk)
         data = CameraSerializer(camera).data
@@ -37,15 +39,16 @@ class CameraSpecific(APIView):
 
 
 
-"""
+
+class CameraQuery(generics.ListCreateAPIView):
+    """
     Query the cameras and order according to some params:
 
     /camera/order?num_images=1 returns the camera with the most images
     /camera/order?num_images=2 returns the top two cameras with the most images
     /camera/order?total_sizes=1 returns the camera with the most data
     /camera/order?largest_file_sizes=1 returns the camera with the largest image file size
- """
-class CameraQuery(generics.ListCreateAPIView):
+    """
     model = Camera
     serializer_class = CameraSerializer
 
@@ -71,14 +74,15 @@ class CameraQuery(generics.ListCreateAPIView):
 
 
 
-"""
+
+class CameraFind(APIView):
+    """
     Obtain aggregate information.
 
     /camera/find/num_images/
     /camera/find/total_sizes/
     /camera/find/largest_file_sizes/
-"""
-class CameraFind(APIView):
+    """
     def get(self, request, metric):
 
 
