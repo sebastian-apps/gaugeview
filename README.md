@@ -36,11 +36,6 @@
   `camera/find/largest_file_sizes`
 
 
-* **Method:**
-  
-  `GET` 
-
-  
 * **Success Response:**
   
   Everything worked as expected.
