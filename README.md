@@ -11,7 +11,7 @@
 
   `/camera/<camera_id>` 
 
-  Order all cameras by number of images (highest to lowest). Return <integer> number of cameras.
+  Order all cameras by number of images (highest to lowest). Return an integer number of cameras.
 
   `/camera/order?num_images=<integer>`
 
