@@ -9,19 +9,19 @@
 
   Return data for a specific camera.
 
-  `/camera/{camera_id}` 
+  `/camera/<camera_id>` 
 
-  Order all cameras by number of images (highest to lowest). Return {integer} number of cameras.
+  Order all cameras by number of images (highest to lowest). Return <integer> number of cameras.
 
-  `/camera/order?num_images={integer}`
+  `/camera/order?num_images=<integer>`
 
   Order all cameras by file size total (largest to smallest).
 
-  `/camera/order?total_sizes={integer}`
+  `/camera/order?total_sizes=<integer>`
 
   Order all cameras by the file size of its largest image (largest to smallest).
 
-  `/camera/order?largest_file_sizes={integer}`
+  `/camera/order?largest_file_sizes=<integer>`
 
   Return aggregate information on number of images (highest to lowest).
 
