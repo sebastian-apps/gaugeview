@@ -2,513 +2,1001 @@
 {% load bootstrap3 %}
 
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js"></script>
 
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% load crispy_forms_tags %}
 
-
+{% load static %}
 
 {% block header %}
-
-<font color="#585858">
-  <h2>GaugeView</h2>
-</font>
-
-
-
+  <h3>Welch's <i>t</i>-test calculator</h3>
 {% endblock header %}
 
 
-
 {% block content %}
+<script src="https://unpkg.com/mathjs/dist/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js"></script>
 
-
-<noscript>
-<div class="disabled">
-Javascript is disabled in your web browser. Please enable JavaScript to view the chart.</div>
-</noscript>
 
 <style>
-#video_box{
-    position:relative;
+
+
+.header_box {
+  background-color: #F5F5F5;
+  border: 2px solid #585858;
+  border-radius: 15px;
 }
-#video_overlays {
-    position:absolute;
-    z-index:300000;
-    text-align:center;
+
+.box {
+  border: 2px solid #e8e8e8;
+  padding: 10px;
+  margin: 0px;
+  border-radius: 15px;
 }
+
+.asteriskField {
+    display: none;
+}
+
 
 .responsive {
   width: 100%;
   height: auto;
 }
 
-.box {
-  border: 15px solid #585858;
-  background-color: #D3D3D3;
-  padding: 10px;
+.slider {
+  border-radius: 5px;
+  background: #E0E0E0;
+  background: linear-gradient(left top, #E0E0E0, #EEEEEE);
+  width: 525px;
+  height: 15px;
+  margin: 0px;
+  position: relative;
 }
+
+
+.thumb {
+  width: 15px;
+  height: 25px;
+  border-radius: 3px;
+  position: relative;
+  left: 0px;
+  top: -5px;
+  background: #ff7034;
+  cursor: pointer;
+}
+
+
+.error_box {
+  background-color: #e8e8e8;
+
+}
+
+/* Probability of Real Effect */
+.prob1 {
+  position: absolute;
+  top: 33%;
+  left: 5%;
+  border: 1px solid #ff7034;
+}
+/* Probability of No Effect */
+.prob2 {
+  position: absolute;
+  top: 65%;
+  left: 5%;
+}
+/* Probability of True Positive */
+.prob3 {
+  position: absolute;
+  top: 20%;
+  left: 47%;
+}
+/* Probability of False Negative */
+.prob4 {
+  position: absolute;
+  top: 40%;
+  left: 47%;
+  color: blue;
+}
+/* Probability of True Negative  */
+.prob5 {
+  position: absolute;
+  top: 60%;
+  left: 47%;
+}
+/* Probability of False Positive*/
+.prob6 {
+  position: absolute;
+  top: 80%;
+  left: 47%;
+  color: red;
+}
+/* Probability of Real Effect x True Positive */
+.prob7 {
+  position: absolute;
+  top: 20%;
+  left: 82%;
+}
+/* Probability of Real Effect x False Negative */
+.prob8 {
+  position: absolute;
+  top: 40%;
+  left: 82%;
+}
+/* Probability of No Effect x True Negative */
+.prob9 {
+  position: absolute;
+  top: 60%;
+  left: 82%;
+}
+/* Probability of No Effect x False Positive */
+.prob10 {
+  position: absolute;
+  top: 80%;
+  left: 82%;
+}
+
+
+@import "compass/css3";
+
+
+* {
+  box-sizing: border-box;
+}
+
+
+::selection {
+  background-color: #4EC6DE;
+}
+
+.tabbed {
+//  width: 700px;
+//  margin: 50px auto;
+}
+
+.tabbed > input {
+  display: none;
+}
+
+.tabbed > label {
+  display: block;
+  float: left;
+  padding: 12px 20px;
+  margin-right: 5px;
+  margin-bottom: 0px;
+  cursor: pointer;
+  transition: background-color .3s;
+}
+
+.tabbed > label:hover,
+.tabbed > input:checked + label {
+  background: #ff7034;
+}
+
+.tabs {
+  margin: 0px;
+  padding: 0px;
+  clear: both;
+  perspective: 600px;
+}
+
+.tabs > div {
+  /* width: 700px; */
+  position: absolute;
+  border: 2px solid #ff7034;
+  padding: 10px 30px 40px;
+  line-height: 1.4em;
+  opacity: 0;
+  z-index: 0;
+}
+
+
+#tab-nav-1:checked ~ .tabs > div:nth-of-type(1),
+#tab-nav-2:checked ~ .tabs > div:nth-of-type(2){
+  opacity: 1;
+  z-index: 1;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  background-color: #ffffff;
+  padding: 0px;
+}
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #c8c8c8;  //rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  text-align: center;
+}
+
+
+.diagram-box {
+  position: relative;
+  border: 1px solid #c8c8c8;
+}
+
+.enter-data{
+  border: 2px solid #c8c8c8;
+  padding: 30px;
+}
+
+/* hide for larger screens */
+#SmallScreen {
+   display: none;
+}
+
+/* show for small screens */
+@media screen and (max-width: 1000px) {
+    #SmallScreen {
+        display: block;
+    }
+}
+
 </style>
 
 
 
 
+<noscript>
+<div class="disabled">
+Javascript is disabled in your web browser. Please enable JavaScript to view.</div>
+</noscript>
+
+
+<div align='justify'>
+Observe the impact of the level of significance on the probabilities for type I and type II errors by using the slider. Also, input and explore your own datasets.
+This calculator is for one-tailed Welch’s <i>t</i>-tests. The data are assumed to be normally distributed.
+<a href='#more-info'>Find more information.</a></div>
+<hr><p><br>
+
+
 
 <div class="row">
-  <div class="col-md-8">
-    <div id="wrap_video" class="box">
-      <div class="responsive" id="video_box">
-        <div id="video_overlays" class="responsive">
-    	     <canvas id="video_canvas" class="responsive"></canvas>
-        </div>
-        <div>
-          <video id="player" controls autoplay class="responsive"></video>
-        </div>
-      </div>
-    </div>
-  </div>
 
-
-  <div class="col-md-4">
-    <center>
-    <div class="box">
-      <div style="font-size: xx-large; background-color: #E8E8E8;">
-        <font color="#585858">time</font>
-        <div id="time_box"></div>
+    <div class="col-md-6">
+      {% if test_results %}
+      <div id="slider" class="slider">
+        <div id="thumb" class="thumb" ontouchmove="move_thumb_mobile(event)"></div>
       </div>
-      <p>
-      <div style="font-size: xx-large; background-color: #E8E8E8">
-        <font color="#585858">pressure</font>
-        <div id="psig_box"></div>
-      </div>
-      <p>
 
       <div>
-        <button class="btn btn-default" id="reset">Reset</button>
-        <button class="btn btn-default" id="export">Export</button><br><p>
-
-          <form action="{% url 'core:gauge_export' %}" method='post'>
-            {% csrf_token %}
-            <input name="json" id="json" type="hidden" value="">
-            <button class="btn btn-primary" id="export_download_button" style="display: none;" name="submit" onclick='remove_button(this)'>DOWNLOAD CSV</button>
-          </form>
+        <canvas id="line_chart" width="1000" height="800"></canvas>
       </div>
-    </div>
-    <p><br>
+      <p><br><p><br>
+      {% endif %}
 
-    <div class="box">
-      <div id="settings_menu" style="background-color: #E8E8E8; display: none">
+      <b><span id="message"></span></b>
+      <br>
 
-        <canvas id="canvas" width=100 height=100></canvas>
-        <p>
+      <div class="enter-data">
+        <form id="data-form" action="{% url 'core:ttest' %}" method='post' class="form">
+        {% csrf_token %}
 
-        <div class="row" align=left style="padding-left:20px">
-          <div class="col-xs-6">
-              Sensitivity:<br><input id="sensitivity_field" size="5"><br>
-              Radius factor:<br><input id="r_factor_field" size="5"><br>
-              Sm. radius factor:<br><input id="sm_r_factor_field" size="5"><br>
-              Min. pixels:<br><input id="pxls_detected_min_field" size="5"><br>
+        <div class="row">
+          	<div class="col-xs-6 col-sm-4">
+          	{{ form.dataset1|as_crispy_field }}
+          	</div>
+          	<div class="col-xs-6 col-sm-4">
+          	{{ form.dataset2|as_crispy_field }}
+          	</div>
+
+           <div class="col-xs-12 col-sm-4">
+              <b>STATISTICS</b><br><br>
+              <b>critical t:</b> <span id="crit_t_value"></span><br>
+              <b>sig level (&#945;):</b> <span id="sig-level"></span><br>
+              <br>
+
+              <b>t-value:</b> <span id="t_value"></span><br>
+              <b>p-value:</b> {{ test_results.p_value }}<br>
+              <br>
+
+              <b>df:</b> {{ test_results.df }}<br>
+              <b>effect size:</b> {{ test_results.effect_size }}<br>
+              <b>ncp:</b> <span id="ncp"></span><br>
+              <br><br>
+
+              <button name="submit" style="margin-bottom:5px" class="btn btn-primary">Analyze</button>
+              <button type="button" style="margin-bottom:5px" class="btn btn-default" onclick="clear_form()">Clear</button>
+              <br><br>
+          </div>
+        </div>
+        </form>
+
+        <div style="background-color: #e8e8e8; padding:10px; min-width:300px;" class="row">
+          <div class="col-xs-4">
+            <span id="SmallScreen"><b>Group 1</b><br></span>
+            {{ data1.mean }}<br>
+            {{ data1.sd }}<br>
+            {{ data1.n }}<br>
+          </div>
+          <div class="col-xs-4">
+            <span id="SmallScreen"><b>Group 2</b><br></span>
+            {{ data2.mean }}<br>
+            {{ data2.sd }}<br>
+            {{ data2.n }}<br>
+          </div>
+          <div class="col-xs-4">
+            <span id="SmallScreen"><br></span>
+            <b>Mean</b><br>
+            <b>SD</b><br>
+            <b>N</b>
+          </div>
+        </div>
+  </div><!-- close enter-data div -->
+
+
+
+
+
+  </div> <!-- column end -->
+
+  <div class="col-md-1">
+  </div>
+
+  <div class="col-md-5">
+
+    {% if test_results %}
+    <div class="tabbed">
+      <input type="radio" name="tabs" id="tab-nav-1" checked>
+      <label for="tab-nav-1">Hypothesis Testing</label>
+      <input type="radio" name="tabs" id="tab-nav-2">
+      <label for="tab-nav-2">PPV</label>
+      <div class="tabs">
+        <div>
+          <br>
+          <i>H<sub>0</sub></i>: population 1 mean = population 2 mean<br>
+          <i>H<sub>1</sub></i>: population 1 mean < population 2 mean<br>
+          <br>
+
+          <b><span id="reject-or-not"></span></b>
+          <p><br>
+
+          <div class="grid-container">
+            <div class="grid-item"><i>H<sub>0</sub></i></div>
+            <div class="grid-item" id="reject">REJECT</div>
+            <div class="grid-item" id="not-reject">NOT REJECT</div>
+            <div class="grid-item">TRUE</div>
+            <div class="grid-item" id="alpha-box">
+              <b><span id="alpha"></span></b><br><br>
+              <font color="red">False Positive<br>Type I Error<br>(&#945;)</font>
             </div>
-            <div class="col-xs-6">
-              R&sup2; min:<br><input id="r_sq_min_field" size="5"><br>
-              Residual cutoff:<br><input id="residual_cutoff_field" size="5"><br>
-              Ref. angle:<br><input id="ref_angle_field" size="5"><br>
-              Calibration:<br><input id="calib_field" size="5"><br>
+            <div class="grid-item">
+              <b><span id="confidence"></span></b><br><br>
+              True Negative<br>Confidence<br>(1 - &#945;)
+            </div>
+            <div class="grid-item">FALSE</div>
+            <div class="grid-item">
+              <b><span id="power"></span></b><br><br>
+              True Positive<br>Power<br>(1 - &#946;)
+            </div>
+            <div class="grid-item" id="beta-box">
+              <b><span id="beta"></span></b><br><br>
+              <font color="blue">False Negative<br>Type II Error<br>(&#946;)</font>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <b>Positive Predictive Value (PPV)</b>
+          <br><br>
+          <div align='justify'>
+          For example, if 1% of the population is afflicted with a disease, and
+          the test for the disease is 99% accurate, we may intuit that
+          our diagnosis will be correct 99% of the time. However, if &#945; = 0.05 and &#946; = 0.01, we will accurately diagnose a patient with the disease only 16% of the time. The PPV in this case is 16%.<sup>4</sup>
+          <br><br>
+          The probability of the real effect (e.g., prevalence of disease) can be modified below.
+
+          </div>
+          <br><br>
+
+          <b>Probability tree diagram</b>
+
+            <div class="diagram-box">
+              <div class="responsive">
+              <img class="responsive" src="{% static 'tree.svg' %}">
+              <input id="prob1" class="prob1" value="0.01" size="3">
+           <b><div id="prob2" class="prob2"></div>
+              <div id="prob3" class="prob3"></div>
+              <div id="prob4" class="prob4"></div>
+              <div id="prob5" class="prob5"></div>
+              <div id="prob6" class="prob6"></div>
+              <div id="prob7" class="prob7"></div>
+              <div id="prob8" class="prob8"></div>
+              <div id="prob9" class="prob9"></div>
+              <div id="prob10" class="prob10"></div></b>
+              </div>
             </div>
             <p><br>
 
+            PPV: <b><span id="ppv"></span></b><br>
+            False Discovery Rate: <b><span id="false_rate"></span></b><br>
+            Sensitivity: <b><span id="sensitivity"></span></b><br>
+            Specificity: <b><span id="specificity"></span></b>
         </div>
-        <p><br>
-        <button class="btn btn-primary" onclick="update_params()">Update</button>
-        <p><br>
       </div>
-
-      <button class="btn btn-default" onclick='settings()'>Settings</button>
-    </div>
-
-    </center>
-
-
-<span id="messages"></span>
-
-
+    </div>  <!-- end of tabbed -->
+    {% endif %}
   </div>
-
-<div id="text"></div>
-
 </div>
 
 
-<p><br>
-<div class="box" id="dynamic_chart"><canvas style="background-color: #ffffff" id="chart" width=100 height=50></canvas></div>
+<div id="SmallScreen" style="height: 1200px;">  <!-- buffer space for small screens -->
+</div>
+
+<hr>
+<a name="more-info"></a>
+<h4>More information</h4>
+
+The Welch’s <i>t</i>-test, or unequal variances <i>t</i>-test, can test hypotheses such as whether the means of two independent normally-distributed populations are equal. While the commonly-used Student <i>t</i>-test requires that the two samples share equal variances and equal sample sizes, the Welch’s <i>t</i>-test does not have this requirement. Researchers argue that the Welch’s <i>t</i>-test is more versatile and should instead be used by default.<sup>1,2</sup>
+<br><br>
+Statistical rigor can be achieved with <i>t</i>-tests, yet the level of significance is set arbitrarily. While lowering significance levels mitigates false positives (&#945;), the probability of false negatives (&#946;) increases, and tests may fail to detect existing effects.<sup>3</sup>
+
+<br><br>
+<h4>References</h4>
+
+1. Dahiru, T. P-value, a true test of statistical significance? A cautionary note. <i>Annals of Ibadan Postgraduate Medicine.</i> 2008, <i>6</i>(1): 21–26.
+<br>
+2. Delacre, M.; Lakens, D.; Leys, C. Why Psychologists Should by Default Use Welch’s t-test Instead of Student’s t-test. <i>International Review of Social Psychology.</i> 2017, <i>30</i>(1), 92–101.
+<br>
+3. Benjamin, D.J.; Berger, J.O.; Johannesson, M. et al. Redefine statistical significance. <i>Nature Human Behaviour.</i> 2018, <i>2</i>, 6–10.
+<br>
+4. Colquhoun, D. An investigation of the false discovery rate and the misinterpretation of p-values. <i>Royal Society Open Science.</i> 2014, <i>1</i>(3): 140216.
+
+<hr>
 
 
 
-<p><br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 <script>
-var sensitivity = {{ sensitivity }};
-var r_factor = {{ r_factor }};
-var sm_r_factor = {{ sm_r_factor }};
-var pxls_detected_min = {{ pxls_detected_min }};
-var r_sq_min = {{ r_sq_min }};
-var residual_cutoff = {{ residual_cutoff }};
-var ref_angle = {{ ref_angle }};
-var calib = {{ calib }};
-
-const message = document.getElementById('messages');
-const settings_menu = document.getElementById('settings_menu');
-const player = document.getElementById('player');
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('2d');
-const resetButton = document.getElementById('reset');
-const exportButton = document.getElementById('export');
-const video_canvas = document.getElementById('video_canvas');
-const context2 = video_canvas.getContext('2d');
-
-var videoWidth;
-var videoHeight;
-var centerX;
-var centerY;
-var time = 0;
-var psig = 0;
-var radius;
-var x0;
-var y0;
-var x_unit = 0;
-var y_unit = 0;
-var points_x;
-var points_y;
-
-var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
-var constraints;
-if (isMobile) {
-  constraints = { video: {facingMode: {exact: "environment"}}};
-}
-else {
-  constraints = {video: true};
-}
+const ROUND_DECIMALS = 4;
+var alpha_curve;
+var beta_curve;
+var shiftX;
+var alpha;
+var beta;
+var newLeft;
+var df;
+var crit_t_value;
+var t_value;
+var crit_t_value_beta;  // critical t with respect to the group 2 distribution, not group 1
 
 
-resetButton.addEventListener('click', () => {
-	time = 0;
-  //real_time = 0;
-	gaugeChart.data.datasets[0]["data"] = [];
-	gaugeChart.update();
-});
+{% if test_results %}
+  const group1 = {{ data1|safe }};
+  const group2 = {{ data2|safe }};
+  const axes = JSON.parse('{{ axes|safe }}');
+  console.log(group1);
+  console.log(group2);
+  console.log(axes);
 
-/*
-  stopButton.addEventListener('click', () => {
-	var enumeratorPromise = navigator.mediaDevices.enumerateDevices();
-navigator.mediaDevices.enumerateDevices()
- .then((list) => {
-   var i;
-   var s = "";
-   for (i = 0; i < list.length; i++) {
-     s = s + list[i].kind + ", "
-   }
-    document.getElementById("text").innerHTML = s;
-  });
-     Stop all video streams.
-    player.srcObject.getVideoTracks().forEach(track => track.stop());
-  });
-*/
+  df = {{ test_results.df }};
+  ncp = {{ test_results.ncp }};
+  document.getElementById("ncp").innerText = round(ncp);
 
-// GET VIDEO STREAM
-navigator.mediaDevices.getUserMedia(constraints)
-.then(function(stream) {
-      player.srcObject = stream;
-      player.onloadedmetadata = function(e) {
-        player.play();
-        prepare_cam_view();
-      };
-})
-.catch(function(err) {
-  /* handle the error */
-});
+  var t_value = {{ test_results.t_value }};
+  document.getElementById("t_value").innerText = round(t_value);  // display t-value, even as negative
+  t_value = math.abs(t_value);
+  document.getElementById("message").innerText = t_value;
+
+{% endif %}
+
+
+prob1 = document.getElementById("prob1");
+prob2 = document.getElementById("prob2");
+prob3 = document.getElementById("prob3");
+prob4 = document.getElementById("prob4");
+prob5 = document.getElementById("prob5");
+prob6 = document.getElementById("prob6");
+prob7 = document.getElementById("prob7");
+prob8 = document.getElementById("prob8");
+prob9 = document.getElementById("prob9");
+prob10 = document.getElementById("prob10");
 
 
 
-display_params();
-
-
-setInterval(function(){
-
-	time = time + 1;
-	// update chart
-  gaugeChart.data.datasets[0]["data"].push({"x": time, "y": psig});
-	gaugeChart.update();
-	document.getElementById("time_box").innerHTML = time + " s";
-  document.getElementById("psig_box").innerHTML = psig + " psig";
-	context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
-	image_gauge = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, '');
-
-
-	$.ajax({
-    headers: { "X-CSRFToken": "{{csrf_token}}"},
-    url:"{% url 'core:read_gauge' %}",
-    method:"POST",
-    data:{
-      image_string: image_gauge,
-      radius: radius,
-      comp_ratio: video_canvas.height/canvas.height,
-      sensitivity: sensitivity,
-      r_factor: r_factor,
-      sm_r_factor: sm_r_factor,
-      pxls_detected_min: pxls_detected_min,
-      r_sq_min : r_sq_min,
-      residual_cutoff: residual_cutoff,
-      ref_angle: ref_angle,
-      calib: calib,
-    },
-    success:function(response) {
-
-      // draw pixels in settings menu
-      points_x = JSON.parse(response.points_x);
-      points_y = JSON.parse(response.points_y);
-      draw_detected_pixels();
-      //draw_circles_in_settings();
-
-      // get pressure and needle position
-			if ((response.psig !== 999) && (response.x_unit !== 999) && (response.y_unit !== 999)) {
-
-				psig = response.psig;
-        document.getElementById("psig_box").innerHTML = psig + " psig";
-        x_unit = response.x_unit;
-        y_unit = response.y_unit;
-
-				// clear the canvas so we can draw a fresh gauge and needle at new position
-				context2.clearRect(0, 0, video_canvas.width, video_canvas.height);
-				context2.beginPath();
-				context2.moveTo(centerX, centerY);
-   			context2.lineTo(centerX+(x_unit*radius),centerY+(y_unit*radius));
-				context2.lineWidth = 4;
-				context2.strokeStyle = '#0000ff';
-				context2.stroke();
-				drawCircles();
+var lineChart = new Chart(document.getElementById("line_chart"), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+        data: [
+          {x: axes.x_min, y: 0},
+          {x: axes.x_max, y: 0},
+        ],
+        label: "refs",
+        borderColor: "transparent",
+        fill: false
+      },{
+        data: group1.dist,
+        label: "Group 1",
+        borderColor: "#ff0000",
+        fill: false
+      }, {
+        data: group2.dist,
+        label: "Group 2",
+        borderColor: "#0000ff",
+        fill: false,
+      }, {
+        data: alpha_curve,
+        label: "\u03B1",
+        borderColor: "transparent",
+        backgroundColor: "#ff000055",
+        fill: true
+      }, {
+        data: beta_curve,
+        label: "\u03B2",
+        borderColor: "transparent",
+        backgroundColor: "#0000ff55",
+        fill: true
       }
-       		},
-       		error:function(){
-        		//alert("error");
-       		}
-       });
-
-}, 1000) /* time in milliseconds */
-
-
-function isStreamSupported() {
-  if (navigator.getUserMedia)
-    return true;
-  else
-    return false;
-}
-
-
-exportButton.addEventListener('click', () => {
-	document.getElementById('json').value=JSON.stringify(gaugeChart.data.datasets[0]["data"])
-	document.getElementById('export_download_button').style="display: true;"
+    ]
+  },
+  options: {
+    animation: false,
+    title: {
+      display: false,
+      text: 't-test'
+    },
+    legend:{
+      position: 'bottom',
+      labels: {
+        filter: function(item, chart) {
+            return !item.text.includes('refs'); // Remove the refs legend item
+          },
+         usePointStyle: true,
+       },
+    },
+    elements: {
+      point:{
+          radius: 0
+      }
+    },
+    scales: {
+      xAxes: [{
+    	  ticks : {
+          min: axes.x_min,
+          stepSize: axes.step_size,
+      		max: axes.x_max,
+    	  },
+        display: true,
+        gridLines: {
+          display:false,
+        },
+        scaleLabel: {
+          display: true,
+          labelString: 'Number'
+        }
+      }],
+      yAxes: [{
+        ticks : {
+          min: 0,
+          max: axes.y_max,
+        },
+        display: true,
+        scaleLabel: {
+          display: true,
+          labelString: 'Normalized Frequency'
+        },
+        gridLines: {
+            display:false
+        }
+      }]
+    },
+    annotation: {
+      annotations: [{
+        type: 'line',
+        mode: 'vertical',
+        scaleID: 'x-axis-1',
+        value: t_value,
+        borderColor: '#c8c8c8',
+        borderWidth: 2,
+        borderDash: [10,5],
+        label: {
+          enabled: true,
+          content: 'p = {{ test_results.p_value }}',
+          backgroundColor: 'transparent',
+          fontColor: '#c8c8c8',
+          position: "top",
+        }
+      },{
+        type: 'line',
+        mode: 'vertical',
+        scaleID: 'x-axis-1',
+        value: crit_t_value,
+        borderColor: '#ff7034',
+        borderWidth: 2,
+        label: {
+          enabled: true,
+          content: '\u03B1',
+          backgroundColor: 'transparent',
+          fontColor: '#4d4e4f',
+          yAdjust: 20,
+          position: "top",
+        }
+      }
+      ],
+      drawTime: "afterDatasetsDraw" // (default)
+    }
+  }
 });
 
-function remove_button(button) {
-   button.style="display: none;"
+
+
+
+// OBTAIN MOUSE EVENT, DRAG SLIDER
+let thumb = slider.querySelector('.thumb');
+
+thumb.onmousedown = function(event) {
+  event.preventDefault(); // prevent selection start (browser action)
+  shiftX = event.clientX - thumb.getBoundingClientRect().left;
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+
+  function onMouseMove(event) {
+    newLeft = event.clientX - shiftX - slider.getBoundingClientRect().left;
+    // the pointer is out of slider => lock the thumb within the boundaries
+    if (newLeft < 0) {
+      newLeft = 0;
+    }
+    let rightEdge = slider.offsetWidth - thumb.offsetWidth;
+    if (newLeft > rightEdge) {
+      newLeft = rightEdge;
+    }
+
+    thumb.style.left = newLeft + 'px';
+    moveBar();
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('mousemove', onMouseMove);
+  }
+
+};
+
+thumb.ondragstart = function() {
+  return false;
+};
+
+
+
+
+
+// FOR MOBILE DEVICES ONLY, DRAG SLIDER
+function move_thumb_mobile(event) {
+  newLeft = event.touches[0].clientX - slider.getBoundingClientRect().left;
+
+  // the pointer is out of slider => lock the thumb within the boundaries
+  if (newLeft < 0) {
+    newLeft = 0;
+  }
+  let rightEdge = slider.offsetWidth - thumb.offsetWidth;
+  if (newLeft > rightEdge) {
+    newLeft = rightEdge;
+  }
+  thumb.style.left = newLeft + 'px';
+  moveBar();
 }
 
 
-function settings(){
-  if (settings_menu.style.display == "none"){
-    settings_menu.style.display = "block";
+
+// Execute initially
+newLeft = init_thumb(axes.x_min, axes.x_max, thumb.offsetWidth);
+moveBar();
+
+
+
+
+
+
+function init_thumb(chart_x_min, chart_x_max, thumbOffsetWidth){
+  // Initial position of the slider thumb.
+  // crit_t_init is an arbitrary initial critical t value
+  var crit_t_init = {{ test_results.crit_t_init }};
+  var init_x = crit_t_init;
+
+  var points = lineChart.chart.getDatasetMeta(0).data;
+  var x1 = points[0]._model.x;
+  var x2 = points[1]._model.x;
+
+  // convert chart x value to the x screen position for the slider thumb
+  var magic_number = 5; // better implementation needed
+  var new_thumb = convert_chart_x_to_screen_x(init_x, chart_x_min, chart_x_max, x1, x2, magic_number);
+  document.getElementById("thumb").style.left = new_thumb +"px";
+  return new_thumb;
+}
+
+
+
+
+
+function convert_chart_x_to_screen_x(x, chart_x_min, chart_x_max, x1, x2, magic_offset){
+  return math.round((((x - chart_x_min)/(chart_x_max - chart_x_min))*(x2-x1)) - magic_offset,0);
+}
+
+function convert_screen_x_to_chart_x(x, x1, x2, chart_x1, chart_x2, thumbOffsetWidth){
+  return (x + (thumbOffsetWidth/2))/(x2 - x1)*(chart_x2-chart_x1) + chart_x1;
+}
+
+
+
+function moveBar(){
+
+  // get absolute x,y coordinates of the chart on the screen
+  var points = lineChart.chart.getDatasetMeta(0).data;
+  var x1 = points[0]._model.x;
+  var y1 = points[0]._model.y;
+  var x2 = points[1]._model.x;
+  var y2 = points[1]._model.y;
+
+  // adjust the slider
+  document.getElementById("slider").style.left = x1 + "px";
+  document.getElementById("slider").style.width = x2 - x1 + "px";
+
+  // draw the critical t vertical line
+  crit_t_value = round(convert_screen_x_to_chart_x(newLeft, x1, x2, axes.x_min, axes.x_max, thumb.offsetWidth));
+  lineChart.options.annotation.annotations[1]['value'] = crit_t_value;
+  lineChart.update();
+
+  // update numeric values related to critical t
+  crit_t_value_beta = crit_t_value - ncp;
+  //document.getElementById('message').innerText = "comp area: " + compute_area(3, df);
+  document.getElementById('crit_t_value').innerText = crit_t_value;
+
+  // fill in areas under the graph, find alpha and beta
+  draw_alpha_curve();
+  draw_beta_curve();
+  get_probabilities();
+  document.getElementById('sig-level').innerText = round(alpha);
+
+  // determine recommendation: to reject or not reject the null hypothesis
+  if (crit_t_value <= t_value){
+    document.getElementById('reject-or-not').innerText = "Reject the Null Hypothesis (H\u2080)";
+    document.getElementById('reject').style.backgroundColor = "#ff7034";
+    document.getElementById('not-reject').style.backgroundColor = "#ffffff";
+
+  } else if (crit_t_value > t_value) {
+    document.getElementById('reject-or-not').innerText = "Do Not Reject the Null Hypothesis (H\u2080)";
+    document.getElementById('reject').style.backgroundColor = "#ffffff";
+    document.getElementById('not-reject').style.backgroundColor = "#ff7034";
+
   } else {
-    settings_menu.style.display = "none";
+    document.getElementById('reject-or-not').innerText = " ";
+    document.getElementById('reject').style.backgroundColor = "#ffffff";
+    document.getElementById('not-reject').style.backgroundColor = "#ffffff";
+  }
+
+  updateProbabilityTree();
+}
+
+
+
+function t_distrib(t, dof){
+  // For a given x, return the t distribution y value.
+  f = (math.gamma((dof+1)/2)/(math.sqrt(dof*math.pi)*math.gamma(dof/2))) * (1+((t**2)/dof))**(-(dof+1)/2);
+  return math.round(f, 6);
+}
+
+
+function draw_alpha_curve(){
+  // Fill the area under the curve representing alpha.
+  alpha_curve = [];
+  alpha_curve.push({x: crit_t_value, y: t_distrib(crit_t_value, group1.df)}); // this datapoint connects with the critical t vertical line
+  for(var i = 0; i < group1.dist.length; i++) {
+    if (group1.dist[i]['x'] > crit_t_value){
+      alpha_curve.push({x: group1.dist[i]['x'], y: group1.dist[i]['y']});
+    }
+  }
+  lineChart.data.datasets[3]['data'] = alpha_curve;
+  lineChart.update();
+}
+
+
+function draw_beta_curve(){
+  // Fill the area under the curve representing beta.
+  beta_curve = [];
+  for(var i = 0; i < group2.dist.length; i++) {
+    if (group2.dist[i]['x'] < crit_t_value){
+      beta_curve.push({x: group2.dist[i]['x'], y: group2.dist[i]['y']});
+    }
+  }
+  beta_curve.push({x: crit_t_value, y: t_distrib(crit_t_value, group2.df)}); // this datapoint connects with the critical t vertical line
+  lineChart.data.datasets[4]['data'] = beta_curve;
+  lineChart.update();
+}
+
+
+
+function get_probabilities(){
+
+  alpha = 1 - compute_area(crit_t_value, df);
+  beta = compute_area(crit_t_value_beta, df);
+
+  document.getElementById("alpha").innerText = round(alpha);
+  document.getElementById("confidence").innerText = round(1-alpha);
+  document.getElementById("beta").innerText = round(beta);
+  document.getElementById("power").innerText = round(1-beta);
+
+  lineChart.options.annotation.annotations[1].label['content'] = '\u03B1 = ' + round(alpha);
+  lineChart.update();
+
+  // Option to have Hypothesis Testing boxes change color intensity according to magnitude of alpha and beta probability
+  //document.getElementById('alpha-box').style = "background-color: rgba(255, 0, 0, "+ (Math.round(alpha * 1000)*0.6 / (1000)).toFixed(3) +");"
+  //document.getElementById('beta-box').style = "background-color: rgba(0, 0, 255, "+ (Math.round(beta * 1000)*0.6 / (1000)).toFixed(3) +");"
+}
+
+
+
+
+
+function updateProbabilityTree(){
+
+  if ((prob1.value >= 0) && (prob1.value <= 1)) {
+    prob2.innerText = round(1 - prob1.value);
+    prob3.innerText = round(1 - beta);
+    prob4.innerText = round(beta);
+    prob5.innerText = round(1 - alpha);
+    prob6.innerText = round(alpha);
+    prob7.innerText = round(prob1.value * prob3.innerText);
+    prob8.innerText = round(prob1.value * prob4.innerText);
+    prob9.innerText = round(prob2.innerText * prob5.innerText);
+    prob10.innerText = round(prob2.innerText * prob6.innerText);
+
+    // Calculate the False Discovery Rate (FDR)
+    var fdr = math.round(parseFloat(prob10.innerText)*100/(parseFloat(prob10.innerText) + parseFloat(prob7.innerText)),2);
+    // Calculate the Positive Predictive Value (PPV)
+    var ppv = math.round(100 - fdr,2);
+
+    if (Number.isNaN(fdr)){
+      fdr = " - ";
+    }
+    if (Number.isNaN(ppv)){
+      ppv = " - ";
+    }
+
+    document.getElementById("false_rate").innerText = fdr + "%";
+    document.getElementById("ppv").innerText = ppv + "%";
+    document.getElementById("sensitivity").innerText = prob3.innerText;
+    document.getElementById("specificity").innerText = prob5.innerText;
   }
 }
 
 
-function prepare_cam_view(){
-  // get video stream dimensions
-  videoWidth = player.srcObject.getTracks()[0].getSettings().width
-  videoHeight = player.srcObject.getTracks()[0].getSettings().height
 
-  // setup canvas for drawing circles
-  video_canvas.width = videoWidth;
-  video_canvas.height = videoHeight;
-  centerX = video_canvas.width / 2;
-  centerY = video_canvas.height / 2;
 
-	//cut out a square image from webcam stream
-	if (video_canvas.height <= video_canvas.width){
-		radius = (video_canvas.height*0.8)/2;
-		y0 = video_canvas.height*0.1;
-		x0 = (video_canvas.width-(2*radius))/2;
-	}
-	else {
-		radius = (video_canvas.width*0.8)/2;
-		y0 = (video_canvas.height-(2*radius))/2;
-		x0 = video_canvas.width*0.1;
-	}
+
+function round(val){
+  return math.round(val, ROUND_DECIMALS).toFixed(ROUND_DECIMALS);
 }
 
 
-function drawCircles (){
-      context2.beginPath();
-      context2.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-      context2.lineWidth = 2;
-      context2.strokeStyle = '#ff0000';
-      context2.stroke();
-      context2.beginPath();
-      context2.arc(centerX, centerY, radius/20, 0, 2 * Math.PI, false);
-      context2.lineWidth = 2;
-      //context2.fillStyle = '#ff0000';
-      //context2.fill();
-      context2.strokeStyle = '#ff0000';
-      context2.stroke();
+function clear_form() {
+  document.getElementById("id_dataset1").value = '';
+  document.getElementById("id_dataset2").value = '';
 }
 
 
-function draw_detected_pixels(){
-  context.beginPath();
-  var i;
-  for (i = 0; i < points_x.length; i++) {
-    context.fillRect(points_x[i],points_y[i],5,5); // fill in the pixel at (10,10)
-  }
-  context.stroke();
-}
-
-function draw_circles_in_settings(){
-  context.beginPath();
-  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*r_factor, 0, 2 * Math.PI, false);
-  context.lineWidth = 1;
-  context.strokeStyle = '#0000ff';
-  context.stroke();
-  context.beginPath();
-  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*sm_r_factor, 0, 2 * Math.PI, false);
-  context.lineWidth = 1;
-  context.strokeStyle = '#0000ff';
-  context.stroke();
-}
+document.getElementById("prob1").onkeypress = function(event){
+    if (event.keyCode == 13 || event.which == 13){
+        updateProbabilityTree();
+    }
+};
 
 
 $(window).resize(function(e) {
-  prepare_cam_view();
+  newLeft = init_thumb(axes.x_min, axes.x_max, thumb.offsetWidth);
+  moveBar();
 });
 
 
-function display_params(){
-  document.getElementById("sensitivity_field").value = sensitivity;
-  document.getElementById("r_factor_field").value = r_factor;
-  document.getElementById("sm_r_factor_field").value = sm_r_factor;
-  document.getElementById("pxls_detected_min_field").value = pxls_detected_min;
-  document.getElementById("r_sq_min_field").value = r_sq_min;
-  document.getElementById("residual_cutoff_field").value = residual_cutoff;
-  document.getElementById("ref_angle_field").value = ref_angle;
-  document.getElementById("calib_field").value = calib;
+
+function LogGamma(Z) {
+	with (Math) {
+		var S=1+76.18009173/Z-86.50532033/(Z+1)+24.01409822/(Z+2)-1.231739516/(Z+3)+.00120858003/(Z+4)-.00000536382/(Z+5);
+		var LG= (Z-.5)*log(Z+4.5)-(Z+4.5)+log(S*2.50662827465);
+	}
+	return LG
+}
+
+function Betinc(X,A,B) {
+	var A0=0;
+	var B0=1;
+	var A1=1;
+	var B1=1;
+	var M9=0;
+	var A2=0;
+	var C9;
+	while (Math.abs((A1-A2)/A1)>.00001) {
+		A2=A1;
+		C9=-(A+M9)*(A+B+M9)*X/(A+2*M9)/(A+2*M9+1);
+		A0=A1+C9*A0;
+		B0=B1+C9*B0;
+		M9=M9+1;
+		C9=M9*(B-M9)*X/(A+2*M9-1)/(A+2*M9);
+		A1=A0+C9*A1;
+		B1=B0+C9*B1;
+		A0=A0/B1;
+		B0=B0/B1;
+		A1=A1/B1;
+		B1=1;
+	}
+	return A1/A
+}
+
+function compute_area(x, df) {
+    X=eval(x)
+    df=eval(df)
+    with (Math) {
+		if (df<=0) {
+			alert("Degrees of freedom must be positive")
+		} else {
+			A=df/2;
+			S=A+.5;
+			Z=df/(df+X*X);
+			BT=exp(LogGamma(S)-LogGamma(.5)-LogGamma(A)+A*log(Z)+.5*log(1-Z));
+			if (Z<(A+1)/(S+2)) {
+				betacdf=BT*Betinc(Z,A,.5)
+			} else {
+				betacdf=1-BT*Betinc(1-Z,.5,A)
+			}
+			if (X<0) {
+				tcdf=betacdf/2
+			} else {
+				tcdf=1-betacdf/2
+			}
+		}
+		tcdf=round(tcdf*100000)/100000;
+	}
+    return round(tcdf);
 }
 
 
-function update_params(){
-  sensitivity_value = document.getElementById("sensitivity_field").value;
-  r_factor_value = document.getElementById("r_factor_field").value;
-  sm_r_factor_value = document.getElementById("sm_r_factor_field").value;
-  pxls_detected_min_value = document.getElementById("pxls_detected_min_field").value;
-  r_sq_min_value = document.getElementById("r_sq_min_field").value;
-  residual_cutoff_value = document.getElementById("residual_cutoff_field").value;
-  ref_angle_value = document.getElementById("ref_angle_field").value;
-  calib_value = document.getElementById("calib_field").value;
+    /*
+    Functions below may be used at a future date.
 
 
-  pxls_detected_min = pxls_detected_min_value;
-  residual_cutoff =residual_cutoff_value;
+    BELOW FOR NORMAL CURVE (Z-TEST)
+    function error_f(x, mean, sd){
+      return (1/(sd*math.sqrt(2*math.pi)))*math.exp((-((x-mean) ** 2))/(2*sd ** 2));
+      //return (1/(sd*math.sqrt(2*math.pi)))*math.exp((-((x-mean)^2))/(2*sd^2));
+    }
 
-  // Sensitivity must be between 0 and 255
-  if ((!isNaN(sensitivity_value)) && (sensitivity_value >= 0) && (sensitivity_value <= 255)){
-    sensitivity = sensitivity_value;
-  }
-  if (!isNaN(sm_r_factor_value)){
-    sm_r_factor = sm_r_factor_value;
-  }
-  // R_sq coefficient must be between 0 and 1
-  if ((!isNaN(r_sq_min_value)) && (r_sq_min_value >= 0) && (r_sq_min_value <= 1)){
-    r_sq_min = r_sq_min_value;
-  }
-  if ((!isNaN(ref_angle_value)) && (ref_angle_value > 0)){
-    ref_angle = ref_angle_value;
-  }
-  if ((!isNaN(calib_value)) && (calib_value > 0)){
-    calib = calib_value;
-  }
-  // Radius factor must be between 0 and 1
-  if ((!isNaN(r_factor_value)) && (r_factor_value >= 0) && (r_factor_value <= 1)){
-    r_factor = r_factor_value;
-  }
-  display_params();
-}
+    function area_under_curve(x1, x2, mean, sd){
+      return -0.5*(math.erf((mean-x2)/(math.sqrt(2)*sd)) - math.erf((mean-x1)/(math.sqrt(2)*sd)));
+    }
 
 
-var gaugeChart = new Chart(document.getElementById("chart"), {
-    type: 'scatter',
-    data: {
-	datasets: [{
-    borderColor: ['rgba(0, 0, 209, 1)'],
-    backgroundColor: ['rgba(0, 0, 209, 0.2)'],
-		data:
-		[{x: 0, y: 0}]
-	}]
-
-    },
-    options: {
-      responsive: true,
-	maintainAspectRatio: true,
-	aspectRatio: 2,
-	animation: false,
-	legend: {
-	display: false,
- 	   labels: {
-	      usePointStyle: true,
-	    },
-           position: 'right',
-	   onClick: (e) => e.stopPropagation()
-      	},
-
-      title: {
-        display: false,
-        text: 'Instrument reading',
-	position: 'bottom',
-	fontSize: 16,
-       },
-	scales: {
-        yAxes: [{
-          ticks : {
-            min: 0
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Pressure (psig)",
-            fontSize: 15,
-          }
-        }],
-        xAxes: [{
-          gridLines: {
-            display: false
-          },
-          ticks : {
-            min: 0
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Time (s)",
-            fontSize: 15,
-          }
-        }]
-      },
-     }
-});
-
+    const width  = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    if (width <= 1000){
+      lineChart.options.annotation.annotations[0].label['enabled'] = true;
+      lineChart.options.annotation.annotations[1].label['enabled'] = true;
+      lineChart.update();
+    }
+    */
 
 </script>
-
-
 
 
 {% endblock content %}
