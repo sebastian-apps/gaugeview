@@ -11,8 +11,9 @@ git clone https://github.com/sebastian-apps/gaugeview.git
 Create and activate the virtual environment.
 
 ```
-virtualenv2 --no-site-packages env
-source env/bin/activate
+cd gaugeview
+python -m venv gaugeview_env
+source gaugeview_env/bin/activate
 ```
 
 Install dependencies.
@@ -33,4 +34,4 @@ Run the server.
 python manage.py runserver
 ```
 
-View django-project at 127.0.0.1:8000.
+View django-project at localhost:8000 
