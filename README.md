@@ -75,7 +75,6 @@ Create the virtual environment.
 ```
 cd cameras
 python -m venv cam_env
-source cam_env/bin/activate
 ```
 
 Activate the virtual environment <i>for OSX</i>.
