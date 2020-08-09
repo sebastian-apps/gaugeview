@@ -8,12 +8,23 @@ Clone the repository.
 git clone https://github.com/sebastian-apps/gaugeview.git
 ```
 
-Create and activate the virtual environment.
+Create the virtual environment.
 
 ```
 cd gaugeview
 python -m venv gaugeview_env
+```
+
+Activate the virtual environment <i>for OSX</i>.
+
+```
 source gaugeview_env/bin/activate
+```
+
+Activate the virtual environment <i>for Windows</i>.
+
+```
+gaugeview_env\Scripts\activate
 ```
 
 Install dependencies.
