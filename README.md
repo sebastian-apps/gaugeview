@@ -70,12 +70,24 @@ Clone the repository.
 git clone https://github.com/sebastian-apps/cameras.git
 ```
 
-Create and activate the virtual environment.
+Create the virtual environment.
 
 ```
 cd cameras
 python -m venv cam_env
 source cam_env/bin/activate
+```
+
+Activate the virtual environment <i>for OSX</i>.
+
+```
+source cam_env/bin/activate
+```
+
+Activate the virtual environment <i>for Windows</i>.
+
+```
+cam_env\Scripts\activate
 ```
 
 Install dependencies.
