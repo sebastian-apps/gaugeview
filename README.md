@@ -1,6 +1,6 @@
 # GaugeView
 
-GaugeView turns a regular webcam or smartphone camera into a real-time pressure monitor. The pressure reading over time can be charted by filming the position of a pressure gauge needle, and the chart can be exported to CSV.
+GaugeView turns a regular webcam or smartphone camera into a real-time pressure monitor. The pressure reading can be charted over time by filming the position of a pressure gauge needle. The chart can be exported to CSV.
 
 <br />
 
