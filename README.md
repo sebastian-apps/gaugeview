@@ -1,5 +1,7 @@
 # Cameras REST API
 
+Cameras REST API manages image files from multiple security cameras.
+
 
 * **URLs**
 
