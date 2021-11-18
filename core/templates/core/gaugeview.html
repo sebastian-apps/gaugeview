@@ -10,12 +10,77 @@
 
 
 
+
+    
+
 {% block header %}
 
-<font color="#585858">
-  <h2>GaugeView</h2>
-</font>
 
+<noscript>
+  <div class="disabled">
+  Javascript is disabled in your web browser. Please enable JavaScript to view the chart.</div>
+  </noscript>
+  
+  <style>
+  
+  #video_box{
+      position:relative;
+  }
+  
+  #video_overlays {
+      position:absolute;
+      z-index:300000;
+      text-align:center;
+  }
+  
+  .responsive {
+    width: 100%;
+    height: auto;
+  }
+
+  .box {
+    border: 7px solid #585858;
+    background-color: #D3D3D3;
+    border-radius: 10px;
+    padding: 10px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .box2 {
+    border: 7px solid #585858;
+    border-radius: 10px;
+    padding: 10px;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .box_inner {
+    background-color: #E8E8E8;
+    font-size: xx-large;
+    color: #000;
+  }
+  
+  .headers{
+    color: #585858;
+  
+  }
+
+  .settings_menu {
+    background-color: #E8E8E8; 
+  }
+ 
+  h1{
+    color:#585858; 
+    font-weight: bold;
+  }
+
+  </style>
+
+
+
+
+<h1>GaugeView</h1>
 
 
 {% endblock header %}
@@ -23,33 +88,6 @@
 
 
 {% block content %}
-
-
-<noscript>
-<div class="disabled">
-Javascript is disabled in your web browser. Please enable JavaScript to view the chart.</div>
-</noscript>
-
-<style>
-#video_box{
-    position:relative;
-}
-#video_overlays {
-    position:absolute;
-    z-index:300000;
-    text-align:center;
-}
-.responsive {
-  width: 100%;
-  height: auto;
-}
-.box {
-  border: 15px solid #585858;
-  background-color: #D3D3D3;
-  padding: 10px;
-}
-</style>
-
 
 
 
@@ -69,16 +107,16 @@ Javascript is disabled in your web browser. Please enable JavaScript to view the
   </div>
 
 
-  <div class="col-md-4">
-    <center>
+  <div class="col-md-4" style="align-items: center">
+  
     <div class="box">
-      <div style="font-size: xx-large; background-color: #E8E8E8;">
-        <font color="#585858">time</font>
+      <div class="box_inner">
+        <div class="headers">time</div>
         <div id="time_box"></div>
       </div>
       <p>
-      <div style="font-size: xx-large; background-color: #E8E8E8">
-        <font color="#585858">pressure</font>
+      <div class="box_inner">
+        <div class="headers">pressure</div>
         <div id="psig_box"></div>
       </div>
       <p>
@@ -97,12 +135,12 @@ Javascript is disabled in your web browser. Please enable JavaScript to view the
     <p><br>
 
     <div class="box">
-      <div id="settings_menu" style="background-color: #E8E8E8; display: none">
+      <div id="settings_menu" class="settings_menu" style="display: none;">
 
         <canvas id="canvas" width=100 height=100></canvas>
         <p>
 
-        <div class="row" align=left style="padding-left:20px">
+        <div class="row" style="padding-left:20px; text-align: left">
           <div class="col-xs-6">
               Sensitivity:<br><input id="sensitivity_field" size="5"><br>
               Radius factor:<br><input id="r_factor_field" size="5"><br>
@@ -126,24 +164,17 @@ Javascript is disabled in your web browser. Please enable JavaScript to view the
       <button class="btn btn-default" onclick='settings()'>Settings</button>
     </div>
 
-    </center>
-
-
-<span id="messages"></span>
-
-
+    <span id="messages"></span>
   </div>
-
-<div id="text"></div>
+  <div id="text"></div>
 
 </div>
 
 
 <p><br>
-<div class="box" id="dynamic_chart"><canvas style="background-color: #ffffff" id="chart" width=100 height=50></canvas></div>
-
-
-
+<div class="box2" id="dynamic_chart">
+  <canvas style="background-color: #ffffff" id="chart" width=100 height=50></canvas>
+</div>
 <p><br>
 
 
@@ -158,14 +189,14 @@ var r_sq_min = {{ r_sq_min }};
 var residual_cutoff = {{ residual_cutoff }};
 var ref_angle = {{ ref_angle }};
 var calib = {{ calib }};
-const message = document.getElementById('messages');
-const settings_menu = document.getElementById('settings_menu');
-const player = document.getElementById('player');
-const canvas = document.getElementById('canvas');
+const message = elem('messages');
+const settings_menu = elem('settings_menu');
+const player = elem('player');
+const canvas = elem('canvas');
 const context = canvas.getContext('2d');
-const resetButton = document.getElementById('reset');
-const exportButton = document.getElementById('export');
-const video_canvas = document.getElementById('video_canvas');
+const resetButton = elem('reset');
+const exportButton = elem('export');
+const video_canvas = elem('video_canvas');
 const context2 = video_canvas.getContext('2d');
 var videoWidth;
 var videoHeight;
@@ -182,6 +213,8 @@ var points_x;
 var points_y;
 var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
 var constraints;
+
+
 if (isMobile) {
   constraints = { video: {facingMode: {exact: "environment"}}};
 }
@@ -194,6 +227,7 @@ resetButton.addEventListener('click', () => {
 	gaugeChart.data.datasets[0]["data"] = [];
 	gaugeChart.update();
 });
+
 /*
   stopButton.addEventListener('click', () => {
 	var enumeratorPromise = navigator.mediaDevices.enumerateDevices();
@@ -204,12 +238,14 @@ navigator.mediaDevices.enumerateDevices()
    for (i = 0; i < list.length; i++) {
      s = s + list[i].kind + ", "
    }
-    document.getElementById("text").innerHTML = s;
+    elem("text").innerHTML = s;
   });
      Stop all video streams.
     player.srcObject.getVideoTracks().forEach(track => track.stop());
   });
 */
+
+
 // GET VIDEO STREAM
 navigator.mediaDevices.getUserMedia(constraints)
 .then(function(stream) {
@@ -220,18 +256,21 @@ navigator.mediaDevices.getUserMedia(constraints)
       };
 })
 .catch(function(err) {
-  /* handle the error */
+  console.log("Exception:", err)
 });
+
 display_params();
+
 setInterval(function(){
 	time = time + 1;
 	// update chart
   gaugeChart.data.datasets[0]["data"].push({"x": time, "y": psig});
 	gaugeChart.update();
-	document.getElementById("time_box").innerHTML = time + " s";
-  document.getElementById("psig_box").innerHTML = psig + " psig";
+	elem("time_box").innerHTML = time + " s";
+  elem("psig_box").innerHTML = psig + " psig";
 	context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
 	image_gauge = canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, '');
+
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
     url:"{% url 'core:read_gauge' %}",
@@ -258,7 +297,7 @@ setInterval(function(){
       // get pressure and needle position
 			if ((response.psig !== 999) && (response.x_unit !== 999) && (response.y_unit !== 999)) {
 				psig = response.psig;
-        document.getElementById("psig_box").innerHTML = psig + " psig";
+        elem("psig_box").innerHTML = psig + " psig";
         x_unit = response.x_unit;
         y_unit = response.y_unit;
 				// clear the canvas so we can draw a fresh gauge and needle at new position
@@ -271,11 +310,11 @@ setInterval(function(){
 				context2.stroke();
 				drawCircles();
       }
-       		},
-       		error:function(){
-        		//alert("error");
-       		}
-       });
+    },
+    error:function(){
+      console.log("Ajax Exception")
+    }
+  });
 }, 1000) /* time in milliseconds */
 function isStreamSupported() {
   if (navigator.getUserMedia)
@@ -283,13 +322,16 @@ function isStreamSupported() {
   else
     return false;
 }
+
 exportButton.addEventListener('click', () => {
-	document.getElementById('json').value=JSON.stringify(gaugeChart.data.datasets[0]["data"])
-	document.getElementById('export_download_button').style="display: true;"
+	elem('json').value=JSON.stringify(gaugeChart.data.datasets[0]["data"])
+	elem('export_download_button').style="display: true;"
 });
+
 function remove_button(button) {
    button.style="display: none;"
 }
+
 function settings(){
   if (settings_menu.style.display == "none"){
     settings_menu.style.display = "block";
@@ -297,6 +339,7 @@ function settings(){
     settings_menu.style.display = "none";
   }
 }
+
 function prepare_cam_view(){
   // get video stream dimensions
   videoWidth = player.srcObject.getTracks()[0].getSettings().width
@@ -318,6 +361,7 @@ function prepare_cam_view(){
 		x0 = video_canvas.width*0.1;
 	}
 }
+
 function drawCircles (){
       context2.beginPath();
       context2.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
@@ -332,6 +376,7 @@ function drawCircles (){
       context2.strokeStyle = '#ff0000';
       context2.stroke();
 }
+
 function draw_detected_pixels(){
   context.beginPath();
   var i;
@@ -340,6 +385,7 @@ function draw_detected_pixels(){
   }
   context.stroke();
 }
+
 function draw_circles_in_settings(){
   context.beginPath();
   context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*r_factor, 0, 2 * Math.PI, false);
@@ -352,28 +398,31 @@ function draw_circles_in_settings(){
   context.strokeStyle = '#0000ff';
   context.stroke();
 }
+
 $(window).resize(function(e) {
   prepare_cam_view();
 });
+
 function display_params(){
-  document.getElementById("sensitivity_field").value = sensitivity;
-  document.getElementById("r_factor_field").value = r_factor;
-  document.getElementById("sm_r_factor_field").value = sm_r_factor;
-  document.getElementById("pxls_detected_min_field").value = pxls_detected_min;
-  document.getElementById("r_sq_min_field").value = r_sq_min;
-  document.getElementById("residual_cutoff_field").value = residual_cutoff;
-  document.getElementById("ref_angle_field").value = ref_angle;
-  document.getElementById("calib_field").value = calib;
+  elem("sensitivity_field").value = sensitivity;
+  elem("r_factor_field").value = r_factor;
+  elem("sm_r_factor_field").value = sm_r_factor;
+  elem("pxls_detected_min_field").value = pxls_detected_min;
+  elem("r_sq_min_field").value = r_sq_min;
+  elem("residual_cutoff_field").value = residual_cutoff;
+  elem("ref_angle_field").value = ref_angle;
+  elem("calib_field").value = calib;
 }
+
 function update_params(){
-  sensitivity_value = document.getElementById("sensitivity_field").value;
-  r_factor_value = document.getElementById("r_factor_field").value;
-  sm_r_factor_value = document.getElementById("sm_r_factor_field").value;
-  pxls_detected_min_value = document.getElementById("pxls_detected_min_field").value;
-  r_sq_min_value = document.getElementById("r_sq_min_field").value;
-  residual_cutoff_value = document.getElementById("residual_cutoff_field").value;
-  ref_angle_value = document.getElementById("ref_angle_field").value;
-  calib_value = document.getElementById("calib_field").value;
+  sensitivity_value = elem("sensitivity_field").value;
+  r_factor_value = elem("r_factor_field").value;
+  sm_r_factor_value = elem("sm_r_factor_field").value;
+  pxls_detected_min_value = elem("pxls_detected_min_field").value;
+  r_sq_min_value = elem("r_sq_min_field").value;
+  residual_cutoff_value = elem("residual_cutoff_field").value;
+  ref_angle_value = elem("ref_angle_field").value;
+  calib_value = elem("calib_field").value;
   pxls_detected_min = pxls_detected_min_value;
   residual_cutoff =residual_cutoff_value;
   // Sensitivity must be between 0 and 255
@@ -399,7 +448,8 @@ function update_params(){
   }
   display_params();
 }
-var gaugeChart = new Chart(document.getElementById("chart"), {
+
+var gaugeChart = new Chart(elem("chart"), {
     type: 'scatter',
     data: {
 	datasets: [{
@@ -455,6 +505,13 @@ var gaugeChart = new Chart(document.getElementById("chart"), {
       },
      }
 });
+
+
+// provides shorthand for getting element id
+function elem(elem_id){
+  return document.getElementById(elem_id);
+}
+
 </script>
 
 
