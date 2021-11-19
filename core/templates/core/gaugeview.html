@@ -190,7 +190,7 @@ var videoWidth;
 var videoHeight;
 var centerX;
 var centerY;
-var time = 0;
+//var time = 0;
 var psig = 0;
 var radius;
 var x0;
@@ -203,6 +203,26 @@ var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webO
 var constraints;
 
 
+
+function timer() {
+  var time = 0;
+  const read = function(){
+    return time;
+  }
+  const increase = function(){
+    time += 1;
+    return time;
+  }
+  const reset = function(){
+    time = 0;
+  }
+  return {read: read, increase: increase, reset: reset}
+}
+var time = timer();
+
+
+
+
 if (isMobile) {
   constraints = { video: {facingMode: {exact: "environment"}}};
 }
@@ -210,7 +230,7 @@ else {
   constraints = {video: true};
 }
 resetButton.addEventListener('click', () => {
-	time = 0;
+	time.reset();
 	gaugeChart.data.datasets[0]["data"] = [];
 	gaugeChart.update();
 });
@@ -250,14 +270,16 @@ navigator.mediaDevices.getUserMedia(constraints)
 displayParams();
 
 
+
+
 setInterval(function(){
-	time = time + 1;
+	// time = time + 1;
+  time.increase();
 	// update chart
-  gaugeChart.data.datasets[0]["data"].push({"x": time, "y": psig});
+  gaugeChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig});
 	gaugeChart.update();
-	elem("time_box").innerText = `${time} s`;
-  elem("psig_box").innerText = `${psig} psig`;
-	context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
+  updateMetrics();
+	displayCamInsideSettings();
 	image_gauge = convertCanvasToBase64();
 
 
@@ -289,8 +311,6 @@ setInterval(function(){
 				psig = response.psig;
         x_unit = response.x_unit;
         y_unit = response.y_unit;
-
-        elem("psig_box").innerText = `${psig} psig`;
         clearCanvas();
         drawGaugeAndNeedle();
       }
@@ -319,6 +339,16 @@ function drawGaugeAndNeedle(){
   context2.strokeStyle = '#0000ff';
   context2.stroke();
   drawCircles();
+}
+
+
+function updateMetrics(){
+	elem("time_box").innerText = `${time.read()} s`;
+  elem("psig_box").innerText = `${psig} psig`;
+}
+
+function displayCamInsideSettings(){
+  context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
 }
 
 function isStreamSupported() {
@@ -419,13 +449,12 @@ function updateParams(){
   sensitivity_value = elem("sensitivity_field").value;
   r_factor_value = elem("r_factor_field").value;
   sm_r_factor_value = elem("sm_r_factor_field").value;
-  pxls_detected_min_value = elem("pxls_detected_min_field").value;
+  pxls_detected_min = elem("pxls_detected_min_field").value;
   r_sq_min_value = elem("r_sq_min_field").value;
   residual_cutoff_value = elem("residual_cutoff_field").value;
   ref_angle_value = elem("ref_angle_field").value;
   calib_value = elem("calib_field").value;
-  pxls_detected_min = pxls_detected_min_value;
-  residual_cutoff =residual_cutoff_value;
+
   // Sensitivity must be between 0 and 255
   if ((!isNaN(sensitivity_value)) && (sensitivity_value >= 0) && (sensitivity_value <= 255)){
     sensitivity = sensitivity_value;
@@ -447,6 +476,9 @@ function updateParams(){
   if ((!isNaN(r_factor_value)) && (r_factor_value >= 0) && (r_factor_value <= 1)){
     r_factor = r_factor_value;
   }
+  // No checks currently for the following parameters
+  pxls_detected_min = pxls_detected_min_value;
+  residual_cutoff = residual_cutoff_value;
   displayParams();
 }
 
