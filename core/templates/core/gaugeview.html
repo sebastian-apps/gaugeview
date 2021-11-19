@@ -190,7 +190,6 @@ var videoWidth;
 var videoHeight;
 var centerX;
 var centerY;
-//var time = 0;
 var psig = 0;
 var radius;
 var x0;
@@ -273,15 +272,12 @@ displayParams();
 
 
 setInterval(function(){
-	// time = time + 1;
   time.increase();
-	// update chart
   gaugeChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig});
-	gaugeChart.update();
+  gaugeChart.update();
   updateMetrics();
-	displayCamInsideSettings();
-	image_gauge = convertCanvasToBase64();
-
+  displayCamInsideSettings();
+  image_gauge = convertCanvasToBase64();
 
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
