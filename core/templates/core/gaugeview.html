@@ -169,14 +169,18 @@
 
 
 <script>
-var sensitivity = {{ sensitivity }};
-var r_factor = {{ r_factor }};
-var sm_r_factor = {{ sm_r_factor }};
-var pxls_detected_min = {{ pxls_detected_min }};
-var r_sq_min = {{ r_sq_min }};
-var residual_cutoff = {{ residual_cutoff }};
-var ref_angle = {{ ref_angle }};
-var calib = {{ calib }};
+
+var params = {
+  sensitivity : {{ sensitivity }},
+  r_factor : {{ r_factor }},
+  sm_r_factor : {{ sm_r_factor }},
+  pxls_detected_min : {{ pxls_detected_min }},
+  r_sq_min : {{ r_sq_min }},
+  residual_cutoff : {{ residual_cutoff }},
+  ref_angle : {{ ref_angle }},
+  calib : {{ calib }},
+}
+
 const message = elem('messages');
 const settings_menu = elem('settings_menu');
 const player = elem('player');
@@ -272,12 +276,12 @@ displayParams();
 
 
 setInterval(function(){
-  time.increase();
   gaugeChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig});
   gaugeChart.update();
   updateMetrics();
   displayCamInsideSettings();
   image_gauge = convertCanvasToBase64();
+
 
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
@@ -287,14 +291,14 @@ setInterval(function(){
       image_string: image_gauge,
       radius: radius,
       comp_ratio: video_canvas.height/canvas.height,
-      sensitivity: sensitivity,
-      r_factor: r_factor,
-      sm_r_factor: sm_r_factor,
-      pxls_detected_min: pxls_detected_min,
-      r_sq_min : r_sq_min,
-      residual_cutoff: residual_cutoff,
-      ref_angle: ref_angle,
-      calib: calib,
+      sensitivity: params.sensitivity,
+      r_factor: params.r_factor,
+      sm_r_factor: params.sm_r_factor,
+      pxls_detected_min: params.pxls_detected_min,
+      r_sq_min : params.r_sq_min,
+      residual_cutoff: params.residual_cutoff,
+      ref_angle: params.ref_angle,
+      calib: params.calib,
     },
     success:function(response) {
       // draw pixels in settings menu
@@ -315,6 +319,7 @@ setInterval(function(){
       console.log("Ajax Exception")
     }
   });
+  time.increase();
 }, 1000) /* time in milliseconds */
 
 
@@ -431,14 +436,14 @@ $(window).resize(function(e) {
 });
 
 function displayParams(){
-  elem("sensitivity_field").value = sensitivity;
-  elem("r_factor_field").value = r_factor;
-  elem("sm_r_factor_field").value = sm_r_factor;
-  elem("pxls_detected_min_field").value = pxls_detected_min;
-  elem("r_sq_min_field").value = r_sq_min;
-  elem("residual_cutoff_field").value = residual_cutoff;
-  elem("ref_angle_field").value = ref_angle;
-  elem("calib_field").value = calib;
+  elem("sensitivity_field").value = params.sensitivity;
+  elem("r_factor_field").value =params. r_factor;
+  elem("sm_r_factor_field").value = params.sm_r_factor;
+  elem("pxls_detected_min_field").value = params.pxls_detected_min;
+  elem("r_sq_min_field").value = params.r_sq_min;
+  elem("residual_cutoff_field").value = params.residual_cutoff;
+  elem("ref_angle_field").value = params.ref_angle;
+  elem("calib_field").value = params.calib;
 }
 
 function updateParams(){
@@ -453,28 +458,28 @@ function updateParams(){
 
   // Sensitivity must be between 0 and 255
   if ((!isNaN(sensitivity_value)) && (sensitivity_value >= 0) && (sensitivity_value <= 255)){
-    sensitivity = sensitivity_value;
+    params.sensitivity = sensitivity_value;
   }
   if (!isNaN(sm_r_factor_value)){
-    sm_r_factor = sm_r_factor_value;
+    params.sm_r_factor = sm_r_factor_value;
   }
   // R_sq coefficient must be between 0 and 1
   if ((!isNaN(r_sq_min_value)) && (r_sq_min_value >= 0) && (r_sq_min_value <= 1)){
-    r_sq_min = r_sq_min_value;
+    params.r_sq_min = r_sq_min_value;
   }
   if ((!isNaN(ref_angle_value)) && (ref_angle_value > 0)){
-    ref_angle = ref_angle_value;
+    params.ref_angle = ref_angle_value;
   }
   if ((!isNaN(calib_value)) && (calib_value > 0)){
-    calib = calib_value;
+    params.calib = calib_value;
   }
   // Radius factor must be between 0 and 1
   if ((!isNaN(r_factor_value)) && (r_factor_value >= 0) && (r_factor_value <= 1)){
-    r_factor = r_factor_value;
+    params.r_factor = r_factor_value;
   }
   // No checks currently for the following parameters
-  pxls_detected_min = pxls_detected_min_value;
-  residual_cutoff = residual_cutoff_value;
+  params.pxls_detected_min = pxls_detected_min_value;
+  params.residual_cutoff = residual_cutoff_value;
   displayParams();
 }
 

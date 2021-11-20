@@ -33,8 +33,7 @@ def default_values():
 
 
 
-def read( image_string, comp_ratio, radius, sensitivity, r_factor, sm_r_factor, pxls_detected_min,
-          r_sq_min, residual_cutoff, ref_angle, calib):
+def read(image_string, comp_ratio, radius, sensitivity, r_factor, sm_r_factor, pxls_detected_min, r_sq_min, residual_cutoff, ref_angle, calib):
     """
     The darker pixels on the image likely represent the gauge needle. Obtain the slope of the needle
     via linear regression, and convert to the angle. By comparing to the reference angle and calibration,
