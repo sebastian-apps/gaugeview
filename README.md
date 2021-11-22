@@ -37,12 +37,6 @@ Install dependencies.
 pip install -r requirements.txt
 ```
 
-Create the database.
-
-```bash
-python manage.py migrate
-```
-
 Run the server.
 
 ```bash

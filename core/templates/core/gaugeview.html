@@ -60,7 +60,7 @@
   
   }
 
-  .settings_menu {
+  .settings-menu {
     background-color: #E8E8E8; 
   }
  
@@ -85,7 +85,7 @@
     <div id="wrap_video" class="box">
       <div class="responsive" id="video_box">
         <div id="video_overlays" class="responsive">
-    	     <canvas id="video_canvas" class="responsive"></canvas>
+    	     <canvas id="video-canvas" class="responsive"></canvas>
         </div>
         <div>
           <video id="player" controls autoplay class="responsive"></video>
@@ -123,9 +123,9 @@
     <p><br>
 
     <div class="box">
-      <div id="settings_menu" class="settings_menu" style="display: none;">
+      <div id="settings-menu" class="settings-menu" style="display: none;">
 
-        <canvas id="canvas" width=100 height=100></canvas>
+        <canvas id="settings-canvas" width=100 height=100></canvas>
         <p>
 
         <div class="row" style="padding-left:20px; text-align: left">
@@ -182,32 +182,53 @@ var params = {
 }
 
 const message = elem('messages');
-const settings_menu = elem('settings_menu');
+const settingsMenu = elem('settings-menu');
 const player = elem('player');
-const canvas = elem('canvas');
-const context = canvas.getContext('2d');
+const settingsCanvas = elem('settings-canvas');
+const settingsCtx = settingsCanvas.getContext('2d');
 const resetButton = elem('reset');
 const exportButton = elem('export');
-const video_canvas = elem('video_canvas');
-const context2 = video_canvas.getContext('2d');
-var videoWidth;
-var videoHeight;
-var centerX;
-var centerY;
-var psig = 0;
-var radius;
-var x0;
-var y0;
-var x_unit = 0;
-var y_unit = 0;
-var points_x;
-var points_y;
-var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
-var constraints;
+const videoCanvas = elem('video-canvas');
+const videoCtx = videoCanvas.getContext('2d');
+
+
+var gauge = {
+  centerX: null,
+  centerY: null,
+  radius: null,
+  xUnit: 0,   // unit circle x value, denotes needle position
+  yUnit: 0,   // unit circle y value, denotes needle position
+}
+
+var detectedPixels = {
+  pointsX: null,
+  pointsY: null
+}
+
+
+var videoParams = {
+  videoWidth: null,
+  videoHeight: null,
+  x0: null,
+  y0: null, 
+}
+
+
+function makePsig(){
+  var psig = 0;
+  const read = function(){
+    return psig;
+  }
+  const write = function(val){
+    psig = val;
+  }
+  return {read: read, write: write}
+}
+var psig = makePsig();
 
 
 
-function timer() {
+function makeTimer() {
   var time = 0;
   const read = function(){
     return time;
@@ -221,39 +242,19 @@ function timer() {
   }
   return {read: read, increase: increase, reset: reset}
 }
-var time = timer();
+var time = makeTimer();
 
 
 
-
+var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
+var constraints;
 if (isMobile) {
   constraints = { video: {facingMode: {exact: "environment"}}};
 }
 else {
   constraints = {video: true};
 }
-resetButton.addEventListener('click', () => {
-	time.reset();
-	gaugeChart.data.datasets[0]["data"] = [];
-	gaugeChart.update();
-});
 
-/*
-  stopButton.addEventListener('click', () => {
-	var enumeratorPromise = navigator.mediaDevices.enumerateDevices();
-navigator.mediaDevices.enumerateDevices()
- .then((list) => {
-   var i;
-   var s = "";
-   for (i = 0; i < list.length; i++) {
-     s = s + list[i].kind + ", "
-   }
-    elem("text").innerHTML = s;
-  });
-     Stop all video streams.
-    player.srcObject.getVideoTracks().forEach(track => track.stop());
-  });
-*/
 
 
 // Get video stream
@@ -269,18 +270,23 @@ navigator.mediaDevices.getUserMedia(constraints)
   console.log("Exception:", err)
 });
 
-
 displayParams();
 
 
 
+resetButton.addEventListener('click', () => {
+	time.reset();
+  resetPressureChart();
+});
+
+
 
 setInterval(function(){
-  gaugeChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig});
-  gaugeChart.update();
+  pressureChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig.read()});
+  pressureChart.update();
   updateMetrics();
   displayCamInsideSettings();
-  image_gauge = convertCanvasToBase64();
+  image_gauge = convertCanvasToBase64(settingsCanvas);
 
 
 	$.ajax({
@@ -289,8 +295,8 @@ setInterval(function(){
     method:"POST",
     data:{
       image_string: image_gauge,
-      radius: radius,
-      comp_ratio: video_canvas.height/canvas.height,
+      radius: gauge.radius,
+      comp_ratio: videoCanvas.height/settingsCanvas.height,
       sensitivity: params.sensitivity,
       r_factor: params.r_factor,
       sm_r_factor: params.sm_r_factor,
@@ -301,16 +307,17 @@ setInterval(function(){
       calib: params.calib,
     },
     success:function(response) {
-      // draw pixels in settings menu
-      points_x = JSON.parse(response.points_x);
-      points_y = JSON.parse(response.points_y);
+      /* draw pixels in settings menu */
+      detectedPixels.pointsX = JSON.parse(response.points_x);
+      detectedPixels.pointsY = JSON.parse(response.points_y);
       drawDetectedPixels();
       //drawCirclesInSettings();
-      // get pressure and needle position
+
+      /* get pressure and needle position */
 			if ((response.psig !== 999) && (response.x_unit !== 999) && (response.y_unit !== 999)) {
-				psig = response.psig;
-        x_unit = response.x_unit;
-        y_unit = response.y_unit;
+				psig.write(response.psig);
+        gauge.xUnit = response.x_unit;
+        gauge.yUnit = response.y_unit;
         clearCanvas();
         drawGaugeAndNeedle();
       }
@@ -323,33 +330,33 @@ setInterval(function(){
 }, 1000) /* time in milliseconds */
 
 
-function convertCanvasToBase64(){
+function convertCanvasToBase64(canvas){
   return canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, '');
 }
 
 function clearCanvas(){
   // clear the canvas so we can draw a fresh gauge and needle at new position
-  context2.clearRect(0, 0, video_canvas.width, video_canvas.height);
+  videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
 }
 
 function drawGaugeAndNeedle(){
-  context2.beginPath();
-  context2.moveTo(centerX, centerY);
-  context2.lineTo(centerX+(x_unit*radius),centerY+(y_unit*radius));
-  context2.lineWidth = 4;
-  context2.strokeStyle = '#0000ff';
-  context2.stroke();
+  videoCtx.beginPath();
+  videoCtx.moveTo(gauge.centerX, gauge.centerY);
+  videoCtx.lineTo(gauge.centerX + (gauge.xUnit*gauge.radius), gauge.centerY+(gauge.yUnit*gauge.radius));
+  videoCtx.lineWidth = 4;
+  videoCtx.strokeStyle = '#0000ff';
+  videoCtx.stroke();
   drawCircles();
 }
 
 
 function updateMetrics(){
 	elem("time_box").innerText = `${time.read()} s`;
-  elem("psig_box").innerText = `${psig} psig`;
+  elem("psig_box").innerText = `${psig.read()} psig`;
 }
 
 function displayCamInsideSettings(){
-  context.drawImage(player, x0, y0, radius*2, radius*2, 0, 0, canvas.width, canvas.height);
+  settingsCtx.drawImage(player, videoParams.x0, videoParams.y0, gauge.radius*2, gauge.radius*2, 0, 0, settingsCanvas.width, settingsCanvas.height);
 }
 
 function isStreamSupported() {
@@ -357,7 +364,7 @@ function isStreamSupported() {
 }
 
 exportButton.addEventListener('click', () => {
-	elem('json').value=JSON.stringify(gaugeChart.data.datasets[0]["data"])
+	elem('json').value=JSON.stringify(pressureChart.data.datasets[0]["data"])
 	elem('export_download_button').style="display: true;"
 });
 
@@ -366,69 +373,69 @@ function removeButton(button) {
 }
 
 function toggleSettingsVisibility(){
-  if (settings_menu.style.display == "none"){
-    settings_menu.style.display = "block";
+  if (settingsMenu.style.display == "none"){
+    settingsMenu.style.display = "block";
   } else {
-    settings_menu.style.display = "none";
+    settingsMenu.style.display = "none";
   }
 }
 
 function prepareCamView(){
   // get video stream dimensions
-  videoWidth = player.srcObject.getTracks()[0].getSettings().width
-  videoHeight = player.srcObject.getTracks()[0].getSettings().height
+  videoParams.videoWidth = player.srcObject.getTracks()[0].getSettings().width
+  videoParams.videoHeight = player.srcObject.getTracks()[0].getSettings().height
   // setup canvas for drawing circles
-  video_canvas.width = videoWidth;
-  video_canvas.height = videoHeight;
-  centerX = video_canvas.width / 2;
-  centerY = video_canvas.height / 2;
+  videoCanvas.width = videoParams.videoWidth;
+  videoCanvas.height = videoParams.videoHeight;
+  gauge.centerX = videoCanvas.width / 2;
+  gauge.centerY = videoCanvas.height / 2;
 	//cut out a square image from webcam stream
-	if (video_canvas.height <= video_canvas.width){
-		radius = (video_canvas.height*0.8)/2;
-		y0 = video_canvas.height*0.1;
-		x0 = (video_canvas.width-(2*radius))/2;
+	if (videoCanvas.height <= videoCanvas.width){
+		gauge.radius = (videoCanvas.height*0.8)/2;
+		videoParams.y0 = videoCanvas.height*0.1;
+		videoParams.x0 = (videoCanvas.width-(2*gauge.radius))/2;
 	}
 	else {
-		radius = (video_canvas.width*0.8)/2;
-		y0 = (video_canvas.height-(2*radius))/2;
-		x0 = video_canvas.width*0.1;
+		gauge.radius = (videoCanvas.width*0.8)/2;
+		videoParams.y0 = (videoCanvas.height-(2*gauge.radius))/2;
+		videoParams.x0 = videoCanvas.width*0.1;
 	}
 }
 
 function drawCircles (){
-      context2.beginPath();
-      context2.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-      context2.lineWidth = 2;
-      context2.strokeStyle = '#ff0000';
-      context2.stroke();
-      context2.beginPath();
-      context2.arc(centerX, centerY, radius/20, 0, 2 * Math.PI, false);
-      context2.lineWidth = 2;
-      //context2.fillStyle = '#ff0000';
-      //context2.fill();
-      context2.strokeStyle = '#ff0000';
-      context2.stroke();
+      videoCtx.beginPath();
+      videoCtx.arc(gauge.centerX, gauge.centerY, gauge.radius, 0, 2 * Math.PI, false);
+      videoCtx.lineWidth = 2;
+      videoCtx.strokeStyle = '#ff0000';
+      videoCtx.stroke();
+      videoCtx.beginPath();
+      videoCtx.arc(gauge.centerX, gauge.centerY, gauge.radius/20, 0, 2 * Math.PI, false);
+      videoCtx.lineWidth = 2;
+      //videoCtx.fillStyle = '#ff0000';
+      //videoCtx.fill();
+      videoCtx.strokeStyle = '#ff0000';
+      videoCtx.stroke();
 }
 
 function drawDetectedPixels(){
-  context.beginPath();
-  for (let i = 0; i < points_x.length; i++) {
-    context.fillRect(points_x[i],points_y[i],5,5); 
+  settingsCtx.beginPath();
+  for (let i = 0; i < detectedPixels.pointsX.length; i++) {
+    settingsCtx.fillRect(detectedPixels.pointsX[i], detectedPixels.pointsY[i],5,5); 
   }
-  context.stroke();
+  settingsCtx.stroke();
 }
 
 function drawCirclesInSettings(){
-  context.beginPath();
-  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*r_factor, 0, 2 * Math.PI, false);
-  context.lineWidth = 1;
-  context.strokeStyle = '#0000ff';
-  context.stroke();
-  context.beginPath();
-  context.arc(canvas.width/2, canvas.height/2, radius*canvas.height/video_canvas.height*sm_r_factor, 0, 2 * Math.PI, false);
-  context.lineWidth = 1;
-  context.strokeStyle = '#0000ff';
-  context.stroke();
+  settingsCtx.beginPath();
+  settingsCtx.arc(settingsCanvas.width/2, settingsCanvas.height/2, gauge.radius*settingsCanvas.height/videoCanvas.height*r_factor, 0, 2 * Math.PI, false);
+  settingsCtx.lineWidth = 1;
+  settingsCtx.strokeStyle = '#0000ff';
+  settingsCtx.stroke();
+  settingsCtx.beginPath();
+  settingsCtx.arc(settingsCanvas.width/2, settingsCanvas.height/2, gauge.radius*settingsCanvas.height/videoCanvas.height*sm_r_factor, 0, 2 * Math.PI, false);
+  settingsCtx.lineWidth = 1;
+  settingsCtx.strokeStyle = '#0000ff';
+  settingsCtx.stroke();
 }
 
 $(window).resize(function(e) {
@@ -450,7 +457,7 @@ function updateParams(){
   sensitivity_value = elem("sensitivity_field").value;
   r_factor_value = elem("r_factor_field").value;
   sm_r_factor_value = elem("sm_r_factor_field").value;
-  pxls_detected_min = elem("pxls_detected_min_field").value;
+  pxls_detected_min_value = elem("pxls_detected_min_field").value;
   r_sq_min_value = elem("r_sq_min_field").value;
   residual_cutoff_value = elem("residual_cutoff_field").value;
   ref_angle_value = elem("ref_angle_field").value;
@@ -483,62 +490,70 @@ function updateParams(){
   displayParams();
 }
 
-var gaugeChart = new Chart(elem("chart"), {
-    type: 'scatter',
-    data: {
-	datasets: [{
+
+
+function resetPressureChart(){
+	pressureChart.data.datasets[0]["data"] = [];
+	pressureChart.update();
+}
+
+
+var pressureChart = new Chart(elem("chart"), {
+  type: 'scatter',
+  data: {
+    datasets: [{
     borderColor: ['rgba(0, 0, 209, 1)'],
     backgroundColor: ['rgba(0, 0, 209, 0.2)'],
-		data:
-		[{x: 0, y: 0}]
-	}]
+    data:
+    [{x: 0, y: 0}]
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    animation: false,
+    legend: {
+    display: false,
+    labels: {
+      usePointStyle: true,
     },
-    options: {
-      responsive: true,
-	maintainAspectRatio: true,
-	aspectRatio: 2,
-	animation: false,
-	legend: {
-	display: false,
- 	   labels: {
-	      usePointStyle: true,
-	    },
-           position: 'right',
-	   onClick: (e) => e.stopPropagation()
-      	},
-      title: {
-        display: false,
-        text: 'Instrument reading',
-	position: 'bottom',
-	fontSize: 16,
-       },
-	scales: {
-        yAxes: [{
-          ticks : {
-            min: 0
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Pressure (psig)",
-            fontSize: 15,
-          }
-        }],
-        xAxes: [{
-          gridLines: {
-            display: false
-          },
-          ticks : {
-            min: 0
-          },
-          scaleLabel: {
-            display: true,
-            labelString: "Time (s)",
-            fontSize: 15,
-          }
-        }]
+          position: 'right',
+    onClick: (e) => e.stopPropagation()
       },
-     }
-});
+    title: {
+      display: false,
+      text: 'Instrument reading',
+    position: 'bottom',
+    fontSize: 16,
+      },
+    scales: {
+      yAxes: [{
+        ticks : {
+          min: 0
+        },
+        scaleLabel: {
+          display: true,
+          labelString: "Pressure (psig)",
+          fontSize: 15,
+        }
+      }],
+      xAxes: [{
+        gridLines: {
+          display: false
+        },
+        ticks : {
+          min: 0
+        },
+        scaleLabel: {
+          display: true,
+          labelString: "Time (s)",
+          fontSize: 15,
+        }
+      }]
+    },
+  }
+  });
 
 
 // provides shorthand for getting element id
