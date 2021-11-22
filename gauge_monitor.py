@@ -48,7 +48,6 @@ def read(image_string, comp_ratio, radius, sensitivity, r_factor, sm_r_factor, p
     width, height = image.size
     center_point = (width/2, height/2)
 
-
     points_x, points_y = get_dark_pixels_in_area(image, center_point, radius*(1/comp_ratio)*r_factor, radius*(1/comp_ratio)*sm_r_factor, sensitivity)
 
     if len(points_x) >= pxls_detected_min:

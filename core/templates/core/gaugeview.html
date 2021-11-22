@@ -274,12 +274,6 @@ displayParams();
 
 
 
-resetButton.addEventListener('click', () => {
-	time.reset();
-  resetPressureChart();
-});
-
-
 
 setInterval(function(){
   pressureChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig.read()});
@@ -287,7 +281,6 @@ setInterval(function(){
   updateMetrics();
   displayCamInsideSettings();
   image_gauge = convertCanvasToBase64(settingsCanvas);
-
 
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
@@ -297,14 +290,7 @@ setInterval(function(){
       image_string: image_gauge,
       radius: gauge.radius,
       comp_ratio: videoCanvas.height/settingsCanvas.height,
-      sensitivity: params.sensitivity,
-      r_factor: params.r_factor,
-      sm_r_factor: params.sm_r_factor,
-      pxls_detected_min: params.pxls_detected_min,
-      r_sq_min : params.r_sq_min,
-      residual_cutoff: params.residual_cutoff,
-      ref_angle: params.ref_angle,
-      calib: params.calib,
+      params: JSON.stringify(params)    
     },
     success:function(response) {
       /* draw pixels in settings menu */
@@ -328,6 +314,15 @@ setInterval(function(){
   });
   time.increase();
 }, 1000) /* time in milliseconds */
+
+
+
+
+
+resetButton.addEventListener('click', () => {
+	time.reset();
+  resetPressureChart();
+});
 
 
 function convertCanvasToBase64(canvas){
@@ -444,7 +439,7 @@ $(window).resize(function(e) {
 
 function displayParams(){
   elem("sensitivity_field").value = params.sensitivity;
-  elem("r_factor_field").value =params. r_factor;
+  elem("r_factor_field").value = params.r_factor;
   elem("sm_r_factor_field").value = params.sm_r_factor;
   elem("pxls_detected_min_field").value = params.pxls_detected_min;
   elem("r_sq_min_field").value = params.r_sq_min;
