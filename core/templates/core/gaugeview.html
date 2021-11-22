@@ -214,35 +214,33 @@ var videoParams = {
 }
 
 
-function makePsig(){
-  var psig = 0;
-  const read = function(){
-    return psig;
+var time = (function() {
+  var timeElapsed = 0;
+  const read = () => {
+    return timeElapsed;
   }
-  const write = function(val){
-    psig = val;
+  const increase = () => {
+    timeElapsed += 1;
+    return timeElapsed;
   }
-  return {read: read, write: write}
-}
-var psig = makePsig();
-
-
-
-function makeTimer() {
-  var time = 0;
-  const read = function(){
-    return time;
-  }
-  const increase = function(){
-    time += 1;
-    return time;
-  }
-  const reset = function(){
-    time = 0;
+  const reset = () => {
+    timeElapsed = 0;
   }
   return {read: read, increase: increase, reset: reset}
-}
-var time = makeTimer();
+}());
+
+
+
+var psig = (function() {
+  var pressure = 0;
+  const read = () => {
+    return pressure;
+  }
+  const write = (val) => {
+    pressure = val;
+  }
+  return {read: read, write: write}
+}());
 
 
 
@@ -280,14 +278,13 @@ setInterval(function(){
   pressureChart.update();
   updateMetrics();
   displayCamInsideSettings();
-  image_gauge = convertCanvasToBase64(settingsCanvas);
 
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
     url:"{% url 'core:read_gauge' %}",
     method:"POST",
     data:{
-      image_string: image_gauge,
+      image_string: convertCanvasToBase64(settingsCanvas),
       radius: gauge.radius,
       comp_ratio: videoCanvas.height/settingsCanvas.height,
       params: JSON.stringify(params)    
@@ -363,17 +360,24 @@ exportButton.addEventListener('click', () => {
 	elem('export_download_button').style="display: true;"
 });
 
+
+function toggleSettingsVisibility(){
+  toggleVisibility(settingsMenu);
+}
+
+function toggleVisibility(element){
+  if (element.style.display == "none"){
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
 function removeButton(button) {
    button.style="display: none;"
 }
 
-function toggleSettingsVisibility(){
-  if (settingsMenu.style.display == "none"){
-    settingsMenu.style.display = "block";
-  } else {
-    settingsMenu.style.display = "none";
-  }
-}
+
 
 function prepareCamView(){
   // get video stream dimensions
