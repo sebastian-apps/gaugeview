@@ -170,17 +170,6 @@
 
 <script>
 
-var params = {
-  sensitivity : {{ sensitivity }},
-  r_factor : {{ r_factor }},
-  sm_r_factor : {{ sm_r_factor }},
-  pxls_detected_min : {{ pxls_detected_min }},
-  r_sq_min : {{ r_sq_min }},
-  residual_cutoff : {{ residual_cutoff }},
-  ref_angle : {{ ref_angle }},
-  calib : {{ calib }},
-}
-
 const message = elem('messages');
 const settingsMenu = elem('settings-menu');
 const player = elem('player');
@@ -191,6 +180,17 @@ const exportButton = elem('export');
 const videoCanvas = elem('video-canvas');
 const videoCtx = videoCanvas.getContext('2d');
 
+		
+var params = {
+  sensitivity : {{ sensitivity }},
+  r_factor : {{ r_factor }},
+  sm_r_factor : {{ sm_r_factor }},
+  pxls_detected_min : {{ pxls_detected_min }},
+  r_sq_min : {{ r_sq_min }},
+  residual_cutoff : {{ residual_cutoff }},
+  ref_angle : {{ ref_angle }},
+  calib : {{ calib }},
+}
 
 var gauge = {
   centerX: null,
