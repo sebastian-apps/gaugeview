@@ -19,13 +19,13 @@ cd gaugeview
 python -m venv gaugeview_env
 ```
 
-Activate the virtual environment <i>for OSX</i>.
+Activate the virtual environment for OSX.
 
 ```
 source gaugeview_env/bin/activate
 ```
 
-Activate the virtual environment <i>for Windows</i>.
+Activate the virtual environment for Windows.
 
 ```
 gaugeview_env\Scripts\activate
