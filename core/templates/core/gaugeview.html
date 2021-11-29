@@ -243,6 +243,10 @@ var psig = (function() {
 }());
 
 
+var pressureChart = createPressureChart(elem("chart"));
+
+
+
 
 var isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
 var constraints;
@@ -253,6 +257,13 @@ else {
   constraints = {video: true};
 }
 
+$(window).resize(function(e) {
+  prepareCamView();
+});
+
+function isStreamSupported() {
+  return navigator.getUserMedia
+}
 
 
 // Get video stream
@@ -274,8 +285,8 @@ displayParams();
 
 
 setInterval(function(){
-  pressureChart.data.datasets[0]["data"].push({"x": time.read(), "y": psig.read()});
-  pressureChart.update();
+
+  pressureChart.addDatapoint(time.read(), psig.read());
   updateMetrics();
   displayCamInsideSettings();
 
@@ -314,11 +325,9 @@ setInterval(function(){
 
 
 
-
-
 resetButton.addEventListener('click', () => {
 	time.reset();
-  resetPressureChart();
+  pressureChart.reset();
 });
 
 
@@ -351,12 +360,8 @@ function displayCamInsideSettings(){
   settingsCtx.drawImage(player, videoParams.x0, videoParams.y0, gauge.radius*2, gauge.radius*2, 0, 0, settingsCanvas.width, settingsCanvas.height);
 }
 
-function isStreamSupported() {
-  return navigator.getUserMedia
-}
-
 exportButton.addEventListener('click', () => {
-	elem('json').value=JSON.stringify(pressureChart.data.datasets[0]["data"])
+  elem('json').value = pressureChart.getJSON();
 	elem('export_download_button').style="display: true;"
 });
 
@@ -437,9 +442,8 @@ function drawCirclesInSettings(){
   settingsCtx.stroke();
 }
 
-$(window).resize(function(e) {
-  prepareCamView();
-});
+
+
 
 function displayParams(){
   elem("sensitivity_field").value = params.sensitivity;
@@ -491,20 +495,19 @@ function updateParams(){
 
 
 
-function resetPressureChart(){
-	pressureChart.data.datasets[0]["data"] = [];
-	pressureChart.update();
-}
 
 
-var pressureChart = new Chart(elem("chart"), {
+function createPressureChart(chartElement) {
+  /*
+  Create a pressure chart using Chart.js, return the following functions: addDatapoint, reset, getJSON.
+  */
+  var pChart = new Chart(chartElement, {
   type: 'scatter',
   data: {
     datasets: [{
     borderColor: ['rgba(0, 0, 209, 1)'],
     backgroundColor: ['rgba(0, 0, 209, 0.2)'],
-    data:
-    [{x: 0, y: 0}]
+    data: []  //array item format: {x: int, y: int}
     }]
   },
   options: {
@@ -553,6 +556,26 @@ var pressureChart = new Chart(elem("chart"), {
     },
   }
   });
+
+  const addDatapoint = (seconds, pressure) => {
+    pChart.data.datasets[0]["data"].push({"x": seconds, "y": pressure});
+    pChart.update();   
+  }
+
+  const reset = () => {
+    pChart.data.datasets[0]["data"] = [];
+	  pChart.update();   
+  }
+
+  const getJSON = () => {
+    return JSON.stringify(pChart.data.datasets[0]["data"])
+  }
+
+  return {addDatapoint: addDatapoint, reset: reset, getJSON: getJSON}
+}
+
+
+
 
 
 // provides shorthand for getting element id
