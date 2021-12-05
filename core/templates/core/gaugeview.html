@@ -2,8 +2,11 @@
 
 {% extends "core/base.html" %}
 {% load bootstrap3 %}
+{% load static %}
+
 
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
 
 {% bootstrap_css %}
 {% bootstrap_javascript %}
@@ -11,64 +14,15 @@
 {% block header %}
 
 
+<link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}" media="screen" />
+<script src="{% static 'js/pressurechart.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/camviews.js' %}" type="text/javascript"></script>
+
 <noscript>
   <div class="disabled">Javascript is disabled in your web browser. Please enable JavaScript to view the chart.</div>
 </noscript>
   
 <style>
-  
-  #video_box{
-      position:relative;
-  }
-  
-  #video_overlays {
-      position:absolute;
-      z-index:300000;
-      text-align:center;
-  }
-  
-  .responsive {
-    width: 100%;
-    height: auto;
-  }
-
-  .box {
-    border: 7px solid #585858;
-    background-color: #D3D3D3;
-    border-radius: 10px;
-    padding: 10px;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .box2 {
-    border: 7px solid #585858;
-    border-radius: 10px;
-    padding: 10px;
-    align-items: center;
-    text-align: center;
-  }
-  
-  .box_inner {
-    background-color: #E8E8E8;
-    font-size: xx-large;
-    color: #000;
-  }
-  
-  .headers{
-    color: #585858;
-  
-  }
-
-  .settings-menu {
-    background-color: #E8E8E8; 
-  }
- 
-  h1{
-    color:#585858; 
-    font-weight: bold;
-  }
-
 </style>
 
 
@@ -93,6 +47,7 @@
       </div>
     </div>
   </div>
+  <p>
 
 
   <div class="col-md-4" style="align-items: center">
@@ -170,17 +125,17 @@
 
 <script>
 
-const message = elem('messages');
-const settingsMenu = elem('settings-menu');
 const player = elem('player');
-const settingsCanvas = elem('settings-canvas');
-const settingsCtx = settingsCanvas.getContext('2d');
 const resetButton = elem('reset');
 const exportButton = elem('export');
-const videoCanvas = elem('video-canvas');
-const videoCtx = videoCanvas.getContext('2d');
+const message = elem('messages');
+const settingsMenu = elem('settings-menu');
 
-		
+var pressureChart = createPressureChart(elem("chart"));
+var primaryCam = new primaryCamView(elem('video-canvas'));
+var settingsCam  = new settingsCamView(elem('settings-canvas'));
+
+
 var params = {
   sensitivity : {{ sensitivity }},
   r_factor : {{ r_factor }},
@@ -206,25 +161,18 @@ var detectedPixels = {
 }
 
 
-var videoParams = {
-  videoWidth: null,
-  videoHeight: null,
-  x0: null,
-  y0: null, 
-}
-
 
 var time = (function() {
-  var timeElapsed = 0;
+  var elapsedTime = 0;
   const read = () => {
-    return timeElapsed;
+    return elapsedTime;
   }
   const increase = () => {
-    timeElapsed += 1;
-    return timeElapsed;
+    elapsedTime += 1;
+    return elapsedTime;
   }
   const reset = () => {
-    timeElapsed = 0;
+    elapsedTime = 0;
   }
   return {read: read, increase: increase, reset: reset}
 }());
@@ -243,7 +191,6 @@ var psig = (function() {
 }());
 
 
-var pressureChart = createPressureChart(elem("chart"));
 
 
 
@@ -258,7 +205,7 @@ else {
 }
 
 $(window).resize(function(e) {
-  prepareCamView();
+  updateCamViews();
 });
 
 function isStreamSupported() {
@@ -272,7 +219,7 @@ navigator.mediaDevices.getUserMedia(constraints)
       player.srcObject = stream;
       player.onloadedmetadata = function(e) {
         player.play();
-        prepareCamView();
+        updateCamViews();
       };
 })
 .catch(function(err) {
@@ -284,27 +231,30 @@ displayParams();
 
 
 
+
+
+
 setInterval(function(){
 
   pressureChart.addDatapoint(time.read(), psig.read());
   updateMetrics();
-  displayCamInsideSettings();
+  settingsCam.displayCropped(player);
 
 	$.ajax({
     headers: { "X-CSRFToken": "{{csrf_token}}"},
     url:"{% url 'core:read_gauge' %}",
     method:"POST",
     data:{
-      image_string: convertCanvasToBase64(settingsCanvas),
+      image_string: settingsCam.convertCanvasToBase64(),
       radius: gauge.radius,
-      comp_ratio: videoCanvas.height/settingsCanvas.height,
+      comp_ratio: primaryCam.getHeight()/settingsCam.getHeight(), 
       params: JSON.stringify(params)    
     },
     success:function(response) {
       /* draw pixels in settings menu */
       detectedPixels.pointsX = JSON.parse(response.points_x);
       detectedPixels.pointsY = JSON.parse(response.points_y);
-      drawDetectedPixels();
+      settingsCam.drawDetectedPixels(detectedPixels);
       //drawCirclesInSettings();
 
       /* get pressure and needle position */
@@ -312,12 +262,14 @@ setInterval(function(){
 				psig.write(response.psig);
         gauge.xUnit = response.x_unit;
         gauge.yUnit = response.y_unit;
-        clearCanvas();
-        drawGaugeAndNeedle();
+        primaryCam.clearCanvas(); 
+        primaryCam.drawGaugeAndNeedle(gauge);
+        
       }
     },
-    error:function(){
-      console.log("Ajax Exception")
+    error:function(request, status, error){
+      console.log("Ajax Exception:", request, status, error);
+      console.log(request.responseText);
     }
   });
   time.increase();
@@ -325,123 +277,35 @@ setInterval(function(){
 
 
 
-resetButton.addEventListener('click', () => {
-	time.reset();
-  pressureChart.reset();
-});
-
-
-function convertCanvasToBase64(canvas){
-  return canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, '');
-}
-
-function clearCanvas(){
-  // clear the canvas so we can draw a fresh gauge and needle at new position
-  videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
-}
-
-function drawGaugeAndNeedle(){
-  videoCtx.beginPath();
-  videoCtx.moveTo(gauge.centerX, gauge.centerY);
-  videoCtx.lineTo(gauge.centerX + (gauge.xUnit*gauge.radius), gauge.centerY+(gauge.yUnit*gauge.radius));
-  videoCtx.lineWidth = 4;
-  videoCtx.strokeStyle = '#0000ff';
-  videoCtx.stroke();
-  drawCircles();
-}
-
-
-function updateMetrics(){
-	elem("time_box").innerText = `${time.read()} s`;
-  elem("psig_box").innerText = `${psig.read()} psig`;
-}
-
-function displayCamInsideSettings(){
-  settingsCtx.drawImage(player, videoParams.x0, videoParams.y0, gauge.radius*2, gauge.radius*2, 0, 0, settingsCanvas.width, settingsCanvas.height);
-}
-
-exportButton.addEventListener('click', () => {
-  elem('json').value = pressureChart.getJSON();
-	elem('export_download_button').style="display: true;"
-});
-
-
-function toggleSettingsVisibility(){
-  toggleVisibility(settingsMenu);
-}
-
-function toggleVisibility(element){
-  if (element.style.display == "none"){
-    element.style.display = "block";
-  } else {
-    element.style.display = "none";
-  }
-}
-
-function removeButton(button) {
-   button.style="display: none;"
-}
 
 
 
-function prepareCamView(){
-  // get video stream dimensions
-  videoParams.videoWidth = player.srcObject.getTracks()[0].getSettings().width
-  videoParams.videoHeight = player.srcObject.getTracks()[0].getSettings().height
-  // setup canvas for drawing circles
-  videoCanvas.width = videoParams.videoWidth;
-  videoCanvas.height = videoParams.videoHeight;
-  gauge.centerX = videoCanvas.width / 2;
-  gauge.centerY = videoCanvas.height / 2;
-	//cut out a square image from webcam stream
-	if (videoCanvas.height <= videoCanvas.width){
-		gauge.radius = (videoCanvas.height*0.8)/2;
-		videoParams.y0 = videoCanvas.height*0.1;
-		videoParams.x0 = (videoCanvas.width-(2*gauge.radius))/2;
+function updateCamViews(){
+  let videoWidth = player.srcObject.getTracks()[0].getSettings().width
+  let videoHeight = player.srcObject.getTracks()[0].getSettings().height
+  primaryCam.updateDimensions(videoWidth, videoHeight);
+  gauge.centerX = videoWidth / 2;
+  gauge.centerY = videoHeight / 2;
+
+	// crop out a square image from webcam feed
+	if (videoHeight <= videoWidth){
+		gauge.radius = (videoHeight*0.8)/2;
+		let x1 = (videoWidth-(2*gauge.radius))/2;
+		let y1 = videoHeight*0.1;
+    let x2 = gauge.radius*2;
+    let y2 = gauge.radius*2;
+    settingsCam.updateCrop(x1, y1, x2, y2);
 	}
 	else {
-		gauge.radius = (videoCanvas.width*0.8)/2;
-		videoParams.y0 = (videoCanvas.height-(2*gauge.radius))/2;
-		videoParams.x0 = videoCanvas.width*0.1;
+		gauge.radius = (videoWidth*0.8)/2;
+		let x1 = videoWidth*0.1;
+		let y1 = (videoHeight-(2*gauge.radius))/2;
+    let x2 = gauge.radius*2;
+    let y2 = gauge.radius*2;
+    settingsCam.updateCrop(x1, y1, x2, y2);
 	}
-}
 
-function drawCircles (){
-      videoCtx.beginPath();
-      videoCtx.arc(gauge.centerX, gauge.centerY, gauge.radius, 0, 2 * Math.PI, false);
-      videoCtx.lineWidth = 2;
-      videoCtx.strokeStyle = '#ff0000';
-      videoCtx.stroke();
-      videoCtx.beginPath();
-      videoCtx.arc(gauge.centerX, gauge.centerY, gauge.radius/20, 0, 2 * Math.PI, false);
-      videoCtx.lineWidth = 2;
-      //videoCtx.fillStyle = '#ff0000';
-      //videoCtx.fill();
-      videoCtx.strokeStyle = '#ff0000';
-      videoCtx.stroke();
 }
-
-function drawDetectedPixels(){
-  settingsCtx.beginPath();
-  for (let i = 0; i < detectedPixels.pointsX.length; i++) {
-    settingsCtx.fillRect(detectedPixels.pointsX[i], detectedPixels.pointsY[i],5,5); 
-  }
-  settingsCtx.stroke();
-}
-
-function drawCirclesInSettings(){
-  settingsCtx.beginPath();
-  settingsCtx.arc(settingsCanvas.width/2, settingsCanvas.height/2, gauge.radius*settingsCanvas.height/videoCanvas.height*r_factor, 0, 2 * Math.PI, false);
-  settingsCtx.lineWidth = 1;
-  settingsCtx.strokeStyle = '#0000ff';
-  settingsCtx.stroke();
-  settingsCtx.beginPath();
-  settingsCtx.arc(settingsCanvas.width/2, settingsCanvas.height/2, gauge.radius*settingsCanvas.height/videoCanvas.height*sm_r_factor, 0, 2 * Math.PI, false);
-  settingsCtx.lineWidth = 1;
-  settingsCtx.strokeStyle = '#0000ff';
-  settingsCtx.stroke();
-}
-
 
 
 
@@ -495,87 +359,39 @@ function updateParams(){
 
 
 
-
-
-function createPressureChart(chartElement) {
-  /*
-  Create a pressure chart using Chart.js, return the following functions: addDatapoint, reset, getJSON.
-  */
-  var pChart = new Chart(chartElement, {
-  type: 'scatter',
-  data: {
-    datasets: [{
-    borderColor: ['rgba(0, 0, 209, 1)'],
-    backgroundColor: ['rgba(0, 0, 209, 0.2)'],
-    data: []  //array element format: {x: int, y: int}
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 2,
-    animation: false,
-    legend: {
-    display: false,
-    labels: {
-      usePointStyle: true,
-    },
-          position: 'right',
-    onClick: (e) => e.stopPropagation()
-      },
-    title: {
-      display: false,
-      text: 'Instrument reading',
-    position: 'bottom',
-    fontSize: 16,
-      },
-    scales: {
-      yAxes: [{
-        ticks : {
-          min: 0
-        },
-        scaleLabel: {
-          display: true,
-          labelString: "Pressure (psig)",
-          fontSize: 15,
-        }
-      }],
-      xAxes: [{
-        gridLines: {
-          display: false
-        },
-        ticks : {
-          min: 0
-        },
-        scaleLabel: {
-          display: true,
-          labelString: "Time (s)",
-          fontSize: 15,
-        }
-      }]
-    },
-  }
-  });
-
-  const addDatapoint = (seconds, pressure) => {
-    pChart.data.datasets[0]["data"].push({"x": seconds, "y": pressure});
-    pChart.update();   
-  }
-
-  const reset = () => {
-    pChart.data.datasets[0]["data"] = [];
-	  pChart.update();   
-  }
-
-  const getJSON = () => {
-    return JSON.stringify(pChart.data.datasets[0]["data"])
-  }
-
-  return {addDatapoint: addDatapoint, reset: reset, getJSON: getJSON}
+function updateMetrics(){
+	elem("time_box").innerText = `${time.read()} s`;
+  elem("psig_box").innerText = `${psig.read()} psig`;
 }
 
 
+resetButton.addEventListener('click', () => {
+	time.reset();
+  pressureChart.reset();
+});
 
+
+exportButton.addEventListener('click', () => {
+  elem('json').value = pressureChart.getJSON();
+	elem('export_download_button').style="display: true;"
+});
+
+
+function toggleSettingsVisibility(){
+  toggleVisibility(settingsMenu);
+}
+
+function toggleVisibility(element){
+  if (element.style.display == "none"){
+    element.style.display = "block";
+  } else {
+    element.style.display = "none";
+  }
+}
+
+function removeButton(button) {
+   button.style="display: none;"
+}
 
 
 // provides shorthand for getting element id

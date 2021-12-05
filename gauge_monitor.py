@@ -4,10 +4,8 @@ import json
 import base64
 import math
 import numpy as np
-import os
-import time
 from sklearn.linear_model import LinearRegression
-import statistics
+
 
 
 
@@ -20,7 +18,7 @@ import statistics
 
 def default_values():
     return {
-            "sensitivity": 70,
+            "sensitivity": 70, 
             "r_factor": 1,
             "sm_r_factor": 0.2,
             "pxls_detected_min": 5,

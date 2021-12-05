@@ -1,0 +1,53 @@
+
+
+#video_box{
+    position:relative;
+}
+
+#video_overlays {
+    position:absolute;
+    z-index:300000;
+    text-align:center;
+}
+
+.responsive {
+  width: 100%;
+  height: auto;
+}
+
+.box {
+  border: 7px solid #585858;
+  background-color: #D3D3D3;
+  border-radius: 10px;
+  padding: 10px;
+  align-items: center;
+  text-align: center;
+}
+
+.box2 {
+  border: 7px solid #585858;
+  border-radius: 10px;
+  padding: 10px;
+  align-items: center;
+  text-align: center;
+}
+
+.box_inner {
+  background-color: #E8E8E8;
+  font-size: xx-large;
+  color: #000;
+}
+
+.headers{
+  color: #585858;
+
+}
+
+.settings-menu {
+  background-color: #E8E8E8; 
+}
+
+h1{
+  color:#585858; 
+  font-weight: bold;
+}
