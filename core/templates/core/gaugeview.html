@@ -155,11 +155,6 @@ var gauge = {
   yUnit: 0,   // unit circle y value, denotes needle position
 }
 
-var detectedPixels = {
-  pointsX: null,
-  pointsY: null
-}
-
 
 
 var time = (function() {
@@ -252,9 +247,11 @@ setInterval(function(){
     },
     success:function(response) {
       /* draw pixels in settings menu */
-      detectedPixels.pointsX = JSON.parse(response.points_x);
-      detectedPixels.pointsY = JSON.parse(response.points_y);
-      settingsCam.drawDetectedPixels(detectedPixels);
+      let detectedPix = {
+        pointsX: JSON.parse(response.points_x),
+        pointsY: JSON.parse(response.points_y)
+      }
+      settingsCam.drawDetectedPixels(detectedPix);
       //drawCirclesInSettings();
 
       /* get pressure and needle position */
