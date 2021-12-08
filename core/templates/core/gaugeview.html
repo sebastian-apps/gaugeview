@@ -37,8 +37,8 @@
 <div class="row">
   <div class="col-md-8">
     <div id="wrap_video" class="box">
-      <div class="responsive" id="video_box">
-        <div id="video_overlays" class="responsive">
+      <div class="responsive" id="video-box">
+        <div id="video-overlays" class="responsive">
     	     <canvas id="video-canvas" class="responsive"></canvas>
         </div>
         <div>
@@ -51,16 +51,15 @@
 
 
   <div class="col-md-4" style="align-items: center">
-  
     <div class="box">
-      <div class="box_inner">
-        <div class="headers">time</div>
-        <div id="time_box"></div>
+      <div class="box-inner">
+        <span class="headers">time</span><br>
+        <span id="time-box"></span>
       </div>
       <p>
-      <div class="box_inner">
-        <div class="headers">pressure</div>
-        <div id="psig_box"></div>
+      <div class="box-inner">
+        <span class="headers">pressure</span><br>
+        <span id="psig-box"></span>
       </div>
       <p>
 
@@ -68,56 +67,54 @@
         <button class="btn btn-default" id="reset">Reset</button>
         <button class="btn btn-default" id="export">Export</button><br><p>
 
+        <section id="export-menu" class="export-menu">
           <form action="{% url 'core:gauge_export' %}" method='post'>
             {% csrf_token %}
             <input name="json" id="json" type="hidden" value="">
-            <button class="btn btn-primary" id="export_download_button" style="display: none;" name="submit" onclick='removeButton(this)'>DOWNLOAD CSV</button>
+            <button class="btn btn-primary" id="export_download_button" name="submit">DOWNLOAD CSV</button>
           </form>
+        </section>
       </div>
     </div>
     <p><br>
 
     <div class="box">
-      <div id="settings-menu" class="settings-menu" style="display: none;">
-
+      <button class="btn btn-default" onclick="showSettings()">Settings</button>
+      <p>
+      <section id="settings-menu" class="settings-menu">
+        <p><br>
         <canvas id="settings-canvas" width=100 height=100></canvas>
         <p>
-
         <div class="row" style="padding-left:20px; text-align: left">
           <div class="col-xs-6">
-              Sensitivity:<br><input id="sensitivity_field" size="5"><br>
-              Radius factor:<br><input id="r_factor_field" size="5"><br>
-              Sm. radius factor:<br><input id="sm_r_factor_field" size="5"><br>
-              Min. pixels:<br><input id="pxls_detected_min_field" size="5"><br>
+              Sensitivity:<br><input class="input-text" id="sensitivity_field" size="5"><br>
+              Radius factor:<br><input class="input-text" id="r_factor_field" size="5"><br>
+              Sm. radius factor:<br><input class="input-text" id="sm_r_factor_field" size="5"><br>
+              Min. pixels:<br><input class="input-text" id="pxls_detected_min_field" size="5"><br>
             </div>
             <div class="col-xs-6">
-              R&sup2; min:<br><input id="r_sq_min_field" size="5"><br>
-              Residual cutoff:<br><input id="residual_cutoff_field" size="5"><br>
-              Ref. angle:<br><input id="ref_angle_field" size="5"><br>
-              Calibration:<br><input id="calib_field" size="5"><br>
+              R&sup2; min:<br><input class="input-text" id="r_sq_min_field" size="5"><br>
+              Residual cutoff:<br><input class="input-text" id="residual_cutoff_field" size="5"><br>
+              Ref. angle:<br><input class="input-text" id="ref_angle_field" size="5"><br>
+              Calibration:<br><input class="input-text" id="calib_field" size="5"><br>
             </div>
             <p><br>
-
         </div>
         <p><br>
         <button class="btn btn-primary" onclick="updateParams()">Update</button>
-        <p><br>
-      </div>
-
-      <button class="btn btn-default" onclick="toggleSettingsVisibility()">Settings</button>
+      </section>   
     </div>
 
     <span id="messages"></span>
   </div>
-  <div id="text"></div>
-
 </div>
 
 
-<p><br>
+<br>
 <div class="box2" id="dynamic_chart">
   <canvas style="background-color: #ffffff" id="chart" width=100 height=50></canvas>
 </div>
+
 <p><br>
 
 
@@ -301,7 +298,6 @@ function updateCamViews(){
     let y2 = gauge.radius*2;
     settingsCam.updateCrop(x1, y1, x2, y2);
 	}
-
 }
 
 
@@ -357,8 +353,8 @@ function updateParams(){
 
 
 function updateMetrics(){
-	elem("time_box").innerText = `${time.read()} s`;
-  elem("psig_box").innerText = `${psig.read()} psig`;
+	elem("time-box").innerText = `${time.read()} s`;
+  elem("psig-box").innerText = `${psig.read()} psig`;
 }
 
 
@@ -370,7 +366,7 @@ resetButton.addEventListener('click', () => {
 
 exportButton.addEventListener('click', () => {
   elem('json').value = pressureChart.getJSON();
-	elem('export_download_button').style="display: true;"
+  showExport();
 });
 
 
@@ -391,10 +387,19 @@ function removeButton(button) {
 }
 
 
+function showSettings(){
+  elem("settings-menu").classList.toggle('settings-expand');
+}
+
+function showExport(){
+  elem("export-menu").classList.toggle('export-expand');
+}
+
 // provides shorthand for getting element id
 function elem(elem_id){
   return document.getElementById(elem_id);
 }
+
 
 </script>
 
