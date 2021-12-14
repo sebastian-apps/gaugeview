@@ -68,7 +68,7 @@ Cameras REST API manages image files from multiple security cameras.
 
 Clone the repository.
 
-```bash
+```
 git clone https://github.com/sebastian-apps/cameras.git
 ```
 
@@ -76,6 +76,8 @@ Create the virtual environment.
 
 ```
 cd cameras
+```
+```
 python -m venv cam_env
 ```
 
@@ -93,19 +95,19 @@ cam_env\Scripts\activate
 
 Install dependencies.
 
-```bash
+```
 pip install -r requirements.txt
 ```
 
 Create the database.
 
-```bash
+```
 python manage.py migrate
 ```
 
 Run the server.
 
-```bash
+```
 python manage.py runserver
 ```
 
