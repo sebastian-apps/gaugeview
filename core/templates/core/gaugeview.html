@@ -71,7 +71,7 @@
           <form action="{% url 'core:gauge_export' %}" method='post'>
             {% csrf_token %}
             <input name="json" id="json" type="hidden" value="">
-            <button class="btn btn-primary" id="export_download_button" name="submit">DOWNLOAD CSV</button>
+            <button class="btn btn-primary" id="export_download_button" name="submit">Download CSV</button>
           </form>
         </section>
       </div>
@@ -128,9 +128,9 @@ const exportButton = elem('export');
 const message = elem('messages');
 const settingsMenu = elem('settings-menu');
 
-var pressureChart = createPressureChart(elem("chart"));
-var primaryCam = new primaryCamView(elem('video-canvas'));
-var settingsCam  = new settingsCamView(elem('settings-canvas'));
+const pressureChart = createPressureChart(elem("chart"));
+const primaryCam = new primaryCamView(elem('video-canvas'));
+const settingsCam  = new settingsCamView(elem('settings-canvas'));
 
 
 var params = {
