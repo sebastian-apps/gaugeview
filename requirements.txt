@@ -1,7 +1,7 @@
 Django==2.2.6
 django-bootstrap3==11.1.0
 joblib==0.14.0
-numpy==1.17.2
+numpy==1.21.0
 Pillow==6.2.0
 pytz==2019.3
 scikit-learn==0.21.3
